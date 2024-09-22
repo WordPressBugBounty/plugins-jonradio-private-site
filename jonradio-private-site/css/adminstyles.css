@@ -1,0 +1,112 @@
+#jr_ps_admin_landing_page_url {
+    width: 500px;
+}
+
+#my_private_site_admin_public_pages_url{
+    width: 500px;
+}
+
+#jr_ps_admin_advanced_password_reset_url,
+#jr_ps_admin_advanced_url {
+    width: 500px;
+}
+
+.my_private_site_main_admin_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 2em;
+}
+
+
+/* Fix header issue */
+.option-my_private_site_tab_main input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_site_privacy input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_landing_page input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_selective_content input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_public_pages input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_membership input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_addons input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_licenses input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+.option-my_private_site_tab_advanced input#submit-cmb.button.button-primary {
+    display : none;
+}
+
+/* From Seamless Donations Admin 5.0 Grid Code */
+.my_private_site_addon_grid {
+    display               : grid;
+    grid-template-columns : repeat(auto-fill, minmax(250px, 1fr));
+    /* This is better for small screens, once min() is better supported */
+    /* grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); */
+    grid-gap              : 1rem;
+}
+
+.my_private_site_main_admin_grid {
+    display               : grid;
+    grid-template-columns : 1fr 1fr 1fr;
+    grid-gap              : 2em;
+}
+
+.cmb2-metabox-title  {
+    font-size: 1.2em !important;
+}
+
+.my_private_site_addon_grid div {
+    background-color : white;
+    border-color     : grey;
+    border-width     : 1px;
+    border-style     : solid;
+    padding          : 10px;
+    position         : relative;
+    float            : left;
+    height           : 260px;
+}
+
+.my_private_site_addon_grid div > p:first-child {
+    font-weight    : bold;
+    margin         : 0;
+    padding-top    : 0;
+    padding-bottom : 2px;
+}
+
+/* https://www.studytonight.com/cascading-style-sheet/styling-link-into-nice-button */
+.my_private_site_clickme {
+    font-size        : 13px;
+    font-style       : normal;
+    font-weight      : 400;
+    background-color : rgb(241, 241, 241);
+    border-color     : #0071a1;
+    border-style     : solid;
+    border-width     : 1px;
+    right            : 14px;
+    padding          : 5px 10px;
+    text-decoration  : none;
+    border-radius    : 5px;
+    color            : rgb(1, 96, 135);
+    cursor           : pointer;
+    position         : absolute;
+    bottom           : 14px;
+}
