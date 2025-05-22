@@ -88,6 +88,16 @@ function my_private_site_admin_site_privacy_section_data( $section_options ) {
 	);
 	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_site_privacy_enable', $handler_function );
 
+	$section_options->add_field(
+		array(
+			'name'  => 'Admin Bar',
+			'id'    => 'jr_ps_admin_hide_admin_bar_enable',
+			'type'  => 'checkbox',
+			'after' => 'Hide admin bar',
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_hide_admin_bar_enable', $handler_function );
+
 	$feature_desc  = 'Public Pages gives you choose the overall privacy mode of the site. You can set the site to ';
 	$feature_desc .= 'private and then open some pages to the public. Or you can set the site to public and restrict ';
 	$feature_desc .= 'access to just some specific pages.';
@@ -217,6 +227,13 @@ function my_private_site_tab_site_privacy_process_buttons() {
 			$compatibility_mode             = trim( sanitize_text_field( $_POST['jr_ps_admin_advanced_compatibility_mode']) );
 			$settings['compatibility_mode'] = $compatibility_mode;
 		}
+		// these just check for value existence
+		// phpcs:ignore WordPress.Security.NonceVerification
+		if ( isset( $_POST['jr_ps_admin_hide_admin_bar_enable'] ) ) {
+			$settings['hide_admin_bar'] = true;
+		} else {
+			$settings['hide_admin_bar'] = false;
+		}
 		$result = update_option( 'jr_ps_settings', $settings );
 		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_site_privacy_save' );
 	}
@@ -265,6 +282,13 @@ function my_private_site_admin_site_privacy_preload( $data, $object_id, $args, $
 		case 'jr_ps_admin_api_security_enable':
 			if ( isset( $settings['private_api'] ) ) {
 				return $settings['private_api'];
+			} else {
+				return false;
+			}
+			break;
+		case 'jr_ps_admin_hide_admin_bar_enable':
+			if ( isset( $settings['hide_admin_bar'] ) ) {
+				return $settings['hide_admin_bar'];
 			} else {
 				return false;
 			}

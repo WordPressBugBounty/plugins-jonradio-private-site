@@ -3,8 +3,8 @@ Contributors: dgewirtz
 Donate link: http://zatzlabs.com/lab-notes/
 Tags: login, visibility, private, security, pages
 Requires at least: 4.0
-Tested up to: 6.6
-Stable tag: 3.1.1
+Tested up to: 6.8
+Stable tag: 3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,7 @@ Login prompts are provided whenever a non-logged in user ("site visitor") attemp
 
 = More Features and Settings =
 
+* New in 3.2: You can now hide the admin bar from the front-end for logged-in users. This feature works whether the site is set to private or not
 * Supports WordPress Networks ("Multisite"), with Network-wide Settings planned for a future version
 * A separate Setting is provided for hiding or revealing Site Home without the need to enter its URL
 * Supports Custom Login and Registration pages at URLs different than the standard WordPress Login and Registration URLs
@@ -31,7 +32,7 @@ Login prompts are provided whenever a non-logged in user ("site visitor") attemp
 * Remember Me improvements at Login via free companion plugin, jonradio Remember Me, which can be downloaded separately from the WordPress Plugin Repository
 * Overrides WordPress hiding of Network Activated plugins, just for itself; to provide this feature for all plugins, use the free companion plugin, Reveal Network Activated Plugins, which can be downloaded separately from the WordPress Plugin Repository
 * Setting to disable the plugin so that other plugin Settings can be changed when the Site is not set to Private
-* New in 3.1: REST API Guardian. Turn on or off the My Private Site REST API security features. Block REST API access for logged-out users
+* REST API Guardian. Turn on or off the My Private Site REST API security features. Block REST API access for logged-out users
 
 
 If you allow Self-Registration, where new Users can Register themselves, you will need to select the "Reveal User Registration Page" setting or new Users will be blocked from seeing the WordPress Registration screen (on WordPress Networks, turning off the Reveal User Registration Page setting on the "Main Site" will prevent Registration from all Sites).  For convenience, the WordPress Setting that controls Self-Registration of Users has been added to the Plugin's Settings page.

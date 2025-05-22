@@ -3,7 +3,7 @@
 Plugin Name: My Private Site
 Plugin URI: http://zatzlabs.com/plugins/
 Description: Easily secure posts, pages, or your entire WordPress site by requiring visitors to login.
-Version: 3.1.1
+Version: 3.2
 Author: David Gewirtz
 Author URI: http://zatzlabs.com/plugins/
 License: GPLv2
@@ -138,10 +138,21 @@ jr_ps_init_settings(
 		'excl_home'           => false,
 		'check_role'          => true,
 		'override_omit'       => false,
+		'hide_admin_bar'      => false,
 	),
 	array( 'user_submenu' )
 );
 $settings = get_option( 'jr_ps_settings' );
+
+/**
+ * Maybe hide the admin bar based on plugin settings.
+ */
+function jr_ps_maybe_hide_admin_bar() {
+	$settings = get_option( 'jr_ps_settings' );
+	if ( ! empty( $settings['hide_admin_bar'] ) && is_user_logged_in() && ! is_admin() ) {
+		show_admin_bar( false );
+	}
+}
 
 if ( is_admin() ) {
 	require_once jr_ps_path() . 'includes/all-admin.php';
@@ -170,6 +181,7 @@ if ( is_admin() ) {
 		// Private Site code
 		require_once jr_ps_path() . 'includes/public.php';
 	}
+	add_action( 'wp_loaded', 'jr_ps_maybe_hide_admin_bar' );
 }
 
 /**
