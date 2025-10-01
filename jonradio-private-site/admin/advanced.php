@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 // advanced - MENU ////
@@ -42,8 +42,10 @@ function my_private_site_admin_advanced_menu() {
 	$args          = apply_filters( 'my_private_site_tab_advanced_menu', $args );
 	$addon_options = new_cmb2_box( $args );
 
-	my_private_site_admin_advanced_section_data( $addon_options );
-	my_private_site_admin_logs_section_data( $addon_options );
+    my_private_site_admin_advanced_section_data( $addon_options );
+    // Show Backups tab before System Log
+    my_private_site_admin_backups_section_data( $addon_options );
+    my_private_site_admin_logs_section_data( $addon_options );
 
 	do_action( 'my_private_site_tab_advanced_after', $addon_options );
 }
@@ -63,6 +65,9 @@ function my_private_site_admin_advanced_section_data( $section_options ) {
 			'name'        => 'Advanced Options',
 			'id'          => 'jr_ps_admin_advanced_title',
 			'type'        => 'title',
+            'secondary_cb'   => 'my_private_site_tab_advanced_page',
+			'secondary_tab'  => 'advanced_options',
+			'secondary_title'=> 'Advanced Options',
 			'after_field' => $section_desc,
 		)
 	);
@@ -189,9 +194,13 @@ function my_private_site_admin_logs_section_data( $section_options ) {
 			'name'    => __( 'Log Data', 'cmb2' ),
 			'id'      => 'my_private_site_log_data',
 			'type'    => 'title',
+            'secondary_cb'   => 'my_private_site_tab_advanced_page',
+			'secondary_tab'  => 'system_log',
+			'secondary_title'=> 'System Log',
 			'default' => 'log data',
 		)
 	);
+
 	$section_options = apply_filters( 'my_private_site_tab_logs_section_data', $section_options );
 
 	$debug_log_content = get_option( 'jr_ps_log' );
@@ -255,12 +264,126 @@ function my_private_site_admin_logs_section_data( $section_options ) {
 	$section_options = apply_filters( 'my_private_site_tab_logs_section_data_options', $section_options );
 }
 
+// BACKUPS - SECTION - DATA ////
+function my_private_site_admin_backups_section_data( $section_options ) {
+    // Backup block header (also declares/labels the Backups sub-tab)
+    $section_options->add_field(
+        array(
+            'name'            => 'Backup Settings',
+            'id'              => 'my_private_site_backups_backup_header',
+            'type'            => 'title',
+            'secondary_cb'    => 'my_private_site_tab_advanced_page',
+            'secondary_tab'   => 'backups',
+            'secondary_title' => 'Manage Settings',
+            'after_field'     => '<i>Backup all your My Private Site settings.</i>',
+        )
+    );
+
+    // Backup block description
+    // (message placed in after_field of the title above)
+
+    $backup_button  = '<div class="jrps-backup-actions">';
+    $backup_button .= sprintf(
+        '<button type="button" class="button button-primary jr-ps-backup-button" data-action="%s" data-nonce="%s">%s</button>',
+        esc_url( admin_url( 'admin-post.php' ) ),
+        esc_attr( wp_create_nonce( 'jr_ps_backup_settings' ) ),
+        esc_html__( 'Backup Now', 'my-private-site' )
+    );
+    $backup_button .= '</div>';
+    my_private_site_cmb2_add_raw_html(
+        $section_options,
+        $backup_button,
+        'my_private_site_backups_backup_button',
+        array( 'secondary_cb' => 'my_private_site_tab_advanced_page', 'secondary_tab' => 'backups', 'classes' => 'jrps-button-row' )
+    );
+
+    // Restore block header
+    $section_options->add_field(
+        array(
+            'name'         => 'Restore Settings',
+            'id'           => 'my_private_site_backups_restore_header',
+            'type'         => 'title',
+            'secondary_cb' => 'my_private_site_tab_advanced_page',
+            'secondary_tab'=> 'backups',
+            'after_field'  => '<i>This restores a current or earlier version of your saved settings.</i> <span style="color:red">Warning: this will overwrite all your existing settings and replace them with the contents of the restored file.</span>',
+        )
+    );
+
+    // Restore block description
+    // (message placed in after_field of the title above)
+
+    $restore_controls  = '<div class="jrps-restore-actions">';
+    $restore_controls .= '<input type="file" id="jr_ps_restore_file" name="jr_ps_restore_file" accept=".json,.txt" style="display:block;margin-bottom:12px;" />';
+    $restore_controls .= sprintf(
+        '<button type="button" class="button jr-ps-restore-button" data-action="%s" data-nonce="%s" data-confirm="%s" data-require="%s">%s</button>',
+        esc_url( admin_url( 'admin-post.php' ) ),
+        esc_attr( wp_create_nonce( 'jr_ps_restore_settings' ) ),
+        esc_attr__( 'This will overwrite all your existing settings and replace them with the contents of the restored file. Continue?', 'my-private-site' ),
+        esc_attr__( 'Please choose a backup file before restoring.', 'my-private-site' ),
+        esc_html__( 'Restore Settings', 'my-private-site' )
+    );
+    $restore_controls .= '</div>';
+    my_private_site_cmb2_add_raw_html(
+        $section_options,
+        $restore_controls,
+        'my_private_site_backups_restore_controls',
+        array( 'secondary_cb' => 'my_private_site_tab_advanced_page', 'secondary_tab' => 'backups', 'classes' => 'jrps-button-row' )
+    );
+
+    // Reset Settings section
+    $section_options->add_field(
+        array(
+            'name'         => 'Reset Settings',
+            'id'           => 'my_private_site_backups_reset_header',
+            'type'         => 'title',
+            'secondary_cb' => 'my_private_site_tab_advanced_page',
+            'secondary_tab'=> 'backups',
+            'after_field'  => '<i>Restore My Private Site to default configuration.</i> <span style="color:red">Warning: this will overwrite all your existing settings and replace them with defaults.</span>',
+        )
+    );
+
+    $reset_controls  = '<div class="jrps-reset-actions">';
+    $reset_controls .= sprintf(
+        '<button type="button" class="button jr-ps-reset-button" data-action="%s" data-nonce="%s" data-confirm="%s">%s</button>',
+        esc_url( admin_url( 'admin-post.php' ) ),
+        esc_attr( wp_create_nonce( 'jr_ps_reset_settings' ) ),
+        esc_attr__( 'This will reset all My Private Site settings to defaults. Continue?', 'my-private-site' ),
+        esc_html__( 'Reset Settings', 'my-private-site' )
+    );
+    $reset_controls .= '</div>';
+    my_private_site_cmb2_add_raw_html(
+        $section_options,
+        $reset_controls,
+        'my_private_site_backups_reset_controls',
+        array( 'secondary_cb' => 'my_private_site_tab_advanced_page', 'secondary_tab' => 'backups', 'classes' => 'jrps-button-row' )
+    );
+
+    if ( ! defined( 'JR_PS_BACKUP_SCRIPT_ADDED' ) ) {
+        define( 'JR_PS_BACKUP_SCRIPT_ADDED', true );
+        $script = '<style>.jr-ps-reset-button{background:#b32d2e!important;color:#fff!important;border-color:#b32d2e!important;} .jr-ps-reset-button:hover,.jr-ps-reset-button:focus,.jr-ps-reset-button:active{background:#922025!important;border-color:#922025!important;color:#fff!important;}</style>';
+        $script .= '<script>(function(){function createHiddenInput(name,value){var input=document.createElement("input");input.type="hidden";input.name=name;input.value=value;return input;}function buildForm(action){var form=document.createElement("form");form.method="post";form.action=action;form.style.display="none";return form;}document.addEventListener("DOMContentLoaded",function(){var backupBtn=document.querySelector(".jr-ps-backup-button");if(backupBtn){backupBtn.addEventListener("click",function(ev){ev.preventDefault();var form=buildForm(backupBtn.dataset.action);form.appendChild(createHiddenInput("action","my_private_site_backup_settings"));form.appendChild(createHiddenInput("jr_ps_backup_settings_nonce",backupBtn.dataset.nonce));document.body.appendChild(form);form.submit();});}var restoreBtn=document.querySelector(".jr-ps-restore-button");var restoreInput=document.getElementById("jr_ps_restore_file");if(restoreInput){restoreInput.addEventListener("change",function(){if(restoreInput.files&&restoreInput.files.length){restoreBtn&&restoreBtn.classList.add("button-primary");}else{restoreBtn&&restoreBtn.classList.remove("button-primary");}});var resetState=' . ( isset( $_GET['jrps_restore_status'] ) ? 'true' : 'false' ) . ';if(resetState){try{restoreInput.value="";}catch(e){}}}
+if(restoreBtn&&restoreInput){restoreBtn.addEventListener("click",function(ev){ev.preventDefault();if(!restoreInput.files||!restoreInput.files.length){var requireMsg=restoreBtn.dataset.require||' . wp_json_encode( __( 'Please choose a backup file before restoring.', 'my-private-site' ) ) . ';window.alert(requireMsg);restoreInput.focus();return;}if(restoreBtn.dataset.confirm&&!window.confirm(restoreBtn.dataset.confirm)){return;}var form=buildForm(restoreBtn.dataset.action);form.enctype="multipart/form-data";form.appendChild(createHiddenInput("action","my_private_site_restore_settings"));form.appendChild(createHiddenInput("jr_ps_restore_settings_nonce",restoreBtn.dataset.nonce));var placeholder=document.createElement("span");placeholder.id="jr-ps-restore-placeholder";restoreInput.parentNode.insertBefore(placeholder,restoreInput);form.appendChild(restoreInput);document.body.appendChild(form);setTimeout(function(){if(placeholder.parentNode){placeholder.parentNode.insertBefore(restoreInput,placeholder);placeholder.remove();}},5000);form.submit();});}
+var resetBtn=document.querySelector(".jr-ps-reset-button");if(resetBtn){resetBtn.addEventListener("click",function(ev){ev.preventDefault();if(resetBtn.dataset.confirm&&!window.confirm(resetBtn.dataset.confirm)){return;}var form=buildForm(resetBtn.dataset.action);form.appendChild(createHiddenInput("action","my_private_site_reset_settings"));form.appendChild(createHiddenInput("jr_ps_reset_settings_nonce",resetBtn.dataset.nonce));document.body.appendChild(form);form.submit();});}});})();</script>';
+        my_private_site_cmb2_add_raw_html(
+            $section_options,
+            $script,
+            'my_private_site_backups_script',
+            array( 'secondary_cb' => 'my_private_site_tab_advanced_page', 'secondary_tab' => 'backups', 'classes' => 'jrps-full-row' )
+        );
+    }
+
+    return $section_options;
+}
+
 // advanced - PROCESS FORM SUBMISSIONS
 function my_private_site_tab_advanced_process_buttons() {
-	// Process Save changes button
-	// This is a callback that has to be passed the full array for consideration
-	// phpcs:ignore WordPress.Security.NonceVerification
-	$_POST = apply_filters( 'validate_page_slug_my_private_site_tab_advanced', $_POST );
+        // Process Save changes button
+        // This is a callback that has to be passed the full array for consideration
+        // phpcs:ignore WordPress.Security.NonceVerification
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
+        $_POST = apply_filters( 'validate_page_slug_my_private_site_tab_advanced', $_POST );
 
 	if ( isset( $_POST['jr_ps_button_advanced_save'], $_POST['jr_ps_button_advanced_save_nonce'] ) ) {
 		if ( ! wp_verify_nonce( $_POST['jr_ps_button_advanced_save_nonce'], 'jr_ps_button_advanced_save' ) ) {
@@ -346,7 +469,12 @@ function my_private_site_tab_advanced_process_buttons() {
 		update_option( 'jr_ps_settings', $settings );
 		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_advanced_save' );
 
-		return;
+		$redirect = wp_get_referer();
+		if ( ! $redirect ) {
+			$redirect = admin_url( 'admin.php?page=my_private_site_tab_advanced&subtab=advanced_options' );
+		}
+		wp_safe_redirect( $redirect );
+		exit;
 	}
 
 	if ( isset( $_POST['jr_ps_button_settings_logs_delete'], $_POST['jr_ps_button_settings_logs_delete_nonce'] ) ) {
@@ -356,8 +484,15 @@ function my_private_site_tab_advanced_process_buttons() {
 		delete_option( 'jr_ps_log' );
 		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_settings_logs_delete' );
 
-		return;
+		$redirect = wp_get_referer();
+		if ( ! $redirect ) {
+			$redirect = admin_url( 'admin.php?page=my_private_site_tab_advanced&subtab=system_log' );
+		}
+		wp_safe_redirect( $redirect );
+		exit;
 	}
+
+    // (Backup handled by admin_post_my_private_site_backup_settings)
 }
 
 function my_private_site_admin_advanced_preload( $data, $object_id, $args, $field ) {
@@ -418,3 +553,28 @@ function my_private_site_admin_advanced_preload( $data, $object_id, $args, $fiel
 			break;
 	}
 }
+
+// Display restore/reset notices on the Backups sub-tab
+add_action( 'admin_notices', function () {
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    if ( ! isset( $_GET['page'] ) || sanitize_text_field( wp_unslash( $_GET['page'] ) ) !== 'my_private_site_tab_advanced' ) {
+        return;
+    }
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    $status = isset( $_GET['jrps_restore_status'] ) ? sanitize_text_field( wp_unslash( $_GET['jrps_restore_status'] ) ) : '';
+    $reset  = isset( $_GET['jrps_reset_status'] ) ? sanitize_text_field( wp_unslash( $_GET['jrps_reset_status'] ) ) : '';
+    if ( $status === '' && $reset === '' ) {
+        return;
+    }
+    $reason = isset( $_GET['jrps_reason'] ) ? sanitize_text_field( wp_unslash( $_GET['jrps_reason'] ) ) : '';
+
+    if ( $status === 'success' ) {
+        echo '<div class="notice notice-success"><p>Settings restored successfully.</p></div>';
+    } elseif ( $status === 'error' ) {
+        echo '<div class="notice notice-error"><p>Restore failed: ' . esc_html( $reason ) . '</p></div>';
+    }
+
+    if ( $reset === 'success' ) {
+        echo '<div class="notice notice-success"><p>Settings reset to defaults. You may now reconfigure the plugin.</p></div>';
+    }
+} );

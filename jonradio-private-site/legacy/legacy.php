@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 function my_private_site_addon_version_check( $addon, $version ) {

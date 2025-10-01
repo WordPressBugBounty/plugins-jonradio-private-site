@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 if ( ! function_exists( 'jr_ps_site_url' ) ) {
@@ -52,6 +52,23 @@ function my_private_site_admin_public_pages_menu() {
 
 add_action( 'cmb2_admin_init', 'my_private_site_admin_public_pages_menu' );
 
+add_action( 'admin_enqueue_scripts', 'my_private_site_public_pages_enqueue_tutorial_assets' );
+
+function my_private_site_public_pages_enqueue_tutorial_assets( $hook ) {
+	// Only load on the Home Page tab for My Private Site options
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+	if ( 'my_private_site_tab_public_pages' !== $page ) {
+		return;
+	}
+
+	$script_path = plugin_dir_path( __FILE__ ) . '../js/tutorial-accordion.js';
+	$script_url  = plugins_url( 'js/tutorial-accordion.js', dirname( __FILE__ ) . '/../jonradio-private-site.php' );
+	$script_ver  = file_exists( $script_path ) ? filemtime( $script_path ) : null;
+
+	wp_enqueue_script( 'my-private-site-tutorial-accordion', $script_url, array(), $script_ver, true );
+}
+
 // MAKE PUBLIC SECTION
 function my_private_site_admin_public_pages_make_public_section_data( $section_options ) {
 	// init values
@@ -68,21 +85,35 @@ function my_private_site_admin_public_pages_make_public_section_data( $section_o
 			'name'        => 'Public Home Page',
 			'id'          => 'my_private_site_admin_public_pages_title',
 			'type'        => 'title',
+			'secondary_cb'   => 'my_private_site_tab_public_pages_page',
+			'secondary_tab'  => 'public_home_page',
+			'secondary_title'=> 'Public Home Page',
 			'after_field' => $section_desc,
 		)
 	);
 
 	$site_home = 'Allow site home page to remain accessible without requiring login';
 
-	$section_options->add_field(
-		array(
-			'name'  => 'Site Home',
-			'id'    => 'my_private_site_admin_public_pages_site_home',
-			'type'  => 'checkbox',
-			'after' => $site_home,
-		)
-	);
-	my_private_site_preload_cmb2_field_filter( 'my_private_site_admin_public_pages_site_home', $handler_function );
+    $section_options->add_field(
+        array(
+            'name'  => 'Site Home',
+            'id'    => 'my_private_site_admin_public_pages_site_home',
+            'type'  => 'checkbox',
+            'after' => $site_home,
+        )
+    );
+    my_private_site_preload_cmb2_field_filter( 'my_private_site_admin_public_pages_site_home', $handler_function );
+
+    // Place primary action button immediately under the Site Home control
+    my_private_site_display_cmb2_submit_button(
+        $section_options,
+        array(
+            'button_id'          => 'jr_ps_button_public_pages_public_home',
+            'button_text'        => 'Make Page Public',
+            'button_success_msg' => 'Public page saved.',
+            'button_error_msg'   => 'Please enter a valid URL',
+        )
+    );
 
 	$section_desc = '<i>Specify pages to remain accessible to the public without needing a login.</i><br>';
 
@@ -94,6 +125,21 @@ function my_private_site_admin_public_pages_make_public_section_data( $section_o
 	$feature_desc .= 'and restrict access to just some specific pages.';
 	$feature_url   = 'https://zatzlabs.com/project/my-private-site-plugins-and-extensions/';
 	$section_desc .= my_private_site_get_feature_promo( $feature_desc, $feature_url, 'UPGRADE', ' ' );
+	$public_pages_tutorial_url = esc_url( my_private_site_get_tutorial_video_url( 'public_pages_overview_tutorial' ) );
+	$section_desc .= '<div class="jrps-promo-video">'
+	               . '<div class="jrps-video-accordion jrps-accordion-open" data-storage-key="jrps_public_pages_tutorial" id="jrps-public-pages-tutorial">'
+	               . '<button type="button" class="jrps-accordion-toggle" aria-expanded="true" aria-controls="jrps-public-pages-tutorial-panel">'
+	               . '<span class="jrps-accordion-title" id="jrps-public-pages-tutorial-heading">Tutorial video</span>'
+	               . '<span class="jrps-accordion-icon" aria-hidden="true"></span>'
+	               . '</button>'
+	               . '<div class="jrps-accordion-panel" id="jrps-public-pages-tutorial-panel" role="region" aria-labelledby="jrps-public-pages-tutorial-heading">'
+	               . '<div class="jrps-video-frame">'
+	               . '<iframe src="' . $public_pages_tutorial_url . '" title="My Private Site Public Pages Tutorial" '
+	               . 'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
+	               . '</div>'
+	               . '</div>'
+	               . '</div>'
+	               . '</div>';
 
 	$section_options->add_field(
 		array(
@@ -112,6 +158,21 @@ function my_private_site_admin_public_pages_make_public_section_data( $section_o
 	$feature_desc .= 'This also gives pages the ability to specify tags and categories, a capability previous reserved only for posts.';
 	$feature_url   = 'https://zatzlabs.com/project/my-private-site-tags-categories/';
 	$section_desc .= my_private_site_get_feature_promo( $feature_desc, $feature_url, 'UPGRADE', ' ' );
+	$tags_categories_tutorial_url = esc_url( my_private_site_get_tutorial_video_url( 'public_pages_tags_categories_tutorial' ) );
+	$section_desc .= '<div class="jrps-promo-video">'
+	               . '<div class="jrps-video-accordion jrps-accordion-open" data-storage-key="jrps_tags_categories_tutorial" id="jrps-tags-categories-tutorial">'
+	               . '<button type="button" class="jrps-accordion-toggle" aria-expanded="true" aria-controls="jrps-tags-categories-tutorial-panel">'
+	               . '<span class="jrps-accordion-title" id="jrps-tags-categories-tutorial-heading">Tutorial video</span>'
+	               . '<span class="jrps-accordion-icon" aria-hidden="true"></span>'
+	               . '</button>'
+	               . '<div class="jrps-accordion-panel" id="jrps-tags-categories-tutorial-panel" role="region" aria-labelledby="jrps-tags-categories-tutorial-heading">'
+	               . '<div class="jrps-video-frame">'
+	               . '<iframe src="' . $tags_categories_tutorial_url . '" title="My Private Site Tags and Categories Tutorial" '
+	               . 'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
+	               . '</div>'
+	               . '</div>'
+	               . '</div>'
+	               . '</div>';
 
 	$section_options->add_field(
 		array(
@@ -122,24 +183,18 @@ function my_private_site_admin_public_pages_make_public_section_data( $section_o
 		)
 	);
 
-	my_private_site_display_cmb2_submit_button(
-		$section_options,
-		array(
-			'button_id'          => 'jr_ps_button_public_pages_public_home',
-			'button_text'        => 'Make Page Public',
-			'button_success_msg' => 'Public page saved.',
-			'button_error_msg'   => 'Please enter a valid URL',
-		)
-	);
-	$section_options = apply_filters( 'my_private_site_tab_public_pages_make_public_section_data_options', $section_options );
+    $section_options = apply_filters( 'my_private_site_tab_public_pages_make_public_section_data_options', $section_options );
 }
 
 function my_private_site_tab_public_pages_process_buttons() {
-	// Process Save changes button
-	// This is a callback that has to be passed the full array for consideration
-	// phpcs:ignore WordPress.Security.NonceVerification
-	$_POST    = apply_filters( 'validate_page_slug_my_private_site_tab_public_pages', $_POST );
-	$settings = get_option( 'jr_ps_settings' );
+        // Process Save changes button
+        // This is a callback that has to be passed the full array for consideration
+        // phpcs:ignore WordPress.Security.NonceVerification
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
+        $_POST    = apply_filters( 'validate_page_slug_my_private_site_tab_public_pages', $_POST );
+        $settings = get_option( 'jr_ps_settings' );
 
 	if ( isset( $_POST['jr_ps_button_public_pages_public_home'], $_POST['jr_ps_button_public_pages_public_home_nonce'] ) ) {
 		if ( ! wp_verify_nonce( $_POST['jr_ps_button_public_pages_public_home_nonce'], 'jr_ps_button_public_pages_public_home' ) ) {
@@ -178,4 +233,3 @@ function my_private_site_admin_public_pages_preload( $data, $object_id, $args, $
 			break;
 	}
 }
-

@@ -405,8 +405,8 @@ function jr_ps_login_url( $login_url ) {
 }
 
 function jr_ps_after_login_url() {
-	$settings = get_option( 'jr_ps_settings' );
-	switch ( $settings['landing'] ) {
+    $settings = get_option( 'jr_ps_settings' );
+    switch ( $settings['landing'] ) {
 		case 'return':
 			// $_SERVER['HTTPS'] can be off in IIS
 			if ( empty( $_SERVER['HTTPS'] ) || ( $_SERVER['HTTPS'] == 'off' ) ) {
@@ -441,10 +441,32 @@ function jr_ps_after_login_url() {
 			break;
 		case 'omit':
 			$after_login_url = '';
-			break;
-	}
+            break;
+    }
 
-	return $after_login_url;
+    // Safety: never redirect back to wp-login.php or a logout page
+    // After a logout WordPress often leaves the browser at
+    // wp-login.php?action=logout or wp-login.php?loggedout=true
+    // If we capture that as the "return" URL, a successful login
+    // would bounce the user straight back to a logout screen.
+    if ( ! empty( $after_login_url ) ) {
+        $parsed = wp_parse_url( $after_login_url );
+        $path   = isset( $parsed['path'] ) ? $parsed['path'] : '';
+        $query  = isset( $parsed['query'] ) ? $parsed['query'] : '';
+
+        $is_login_path = ( false !== strpos( $path, 'wp-login.php' ) );
+        $has_logout_query = false;
+        if ( ! empty( $query ) ) {
+            parse_str( $query, $q );
+            $has_logout_query = ( ( isset( $q['action'] ) && $q['action'] === 'logout' ) || isset( $q['loggedout'] ) );
+        }
+
+        if ( $is_login_path || $has_logout_query ) {
+            $after_login_url = get_home_url();
+        }
+    }
+
+    return $after_login_url;
 }
 
 function jr_ps_login_failed() {
@@ -480,5 +502,4 @@ function jr_ps_wp_authenticate( $username, $password ) {
 		}
 	}
 }
-
 

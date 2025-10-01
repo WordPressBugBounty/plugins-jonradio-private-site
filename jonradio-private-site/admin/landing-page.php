@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 // landing_page - MENU ////
@@ -127,10 +127,13 @@ function my_private_site_admin_landing_page_section_data( $section_options ) {
 }
 
 function my_private_site_tab_landing_page_process_buttons() {
-	// Process Save changes button
-	// This is a callback that has to be passed the full array for consideration
-	// phpcs:ignore WordPress.Security.NonceVerification
-	$_POST = apply_filters( 'validate_page_slug_my_private_site_tab_landing_page', $_POST );
+        // Process Save changes button
+        // This is a callback that has to be passed the full array for consideration
+        // phpcs:ignore WordPress.Security.NonceVerification
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
+        $_POST = apply_filters( 'validate_page_slug_my_private_site_tab_landing_page', $_POST );
 
 	if ( isset( $_POST['jr_ps_button_landing_page_save'], $_POST['jr_ps_button_landing_page_save_nonce'] ) ) {
 		if ( ! wp_verify_nonce( $_POST['jr_ps_button_landing_page_save_nonce'], 'jr_ps_button_landing_page_save' ) ) {

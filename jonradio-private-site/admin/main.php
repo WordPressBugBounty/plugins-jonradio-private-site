@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 
@@ -87,6 +87,12 @@ function my_private_site_render_main_tab_html( $field_args, $field ) {
 	$html_file   = $html_folder . 'admin-main.html';
 	$html_readme = file_get_contents( $html_file );
 
+	$dashboard_video = my_private_site_get_tutorial_video_url( 'dashboard_getting_started_tutorial' );
+	if ( $dashboard_video === '' ) {
+		$dashboard_video = 'https://www.youtube-nocookie.com/embed/5bW88-4BlF4?rel=0&modestbranding=1&playlist=5bW88-4BlF4&loop=1';
+	}
+	$html_readme = str_replace( '{{MPS_TUTORIAL_DASHBOARD}}', esc_url( $dashboard_video ), $html_readme );
+
 	$html_readme = apply_filters( 'my_private_site_admin_main_section_data_options', $html_readme );
 
 	$allowed_html = array(
@@ -98,6 +104,7 @@ function my_private_site_render_main_tab_html( $field_args, $field ) {
 		'div'    => array(
 			'id'    => array(),
 			'class' => array(),
+			'data-action' => array(),
 		),
 		'form'   => array(
 			'action' => array(),
@@ -123,7 +130,7 @@ function my_private_site_render_main_tab_html( $field_args, $field ) {
 			'type'     => array(),
 			'value'    => array(),
 			'name'     => array(),
-			'class`'   => array(),
+			'class'    => array(),
 			'id'       => array(),
 			'tabindex' => array(),
 		),
@@ -156,10 +163,29 @@ function my_private_site_render_main_tab_html( $field_args, $field ) {
 //	echo $html_readme;
 }
 
+// Enqueue admin JS for Mailchimp widget only on our options page
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+    // Only load on our plugin page: admin.php?page=my_private_site_tab_main
+    $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+    if ( 'my_private_site_tab_main' !== $page ) {
+        return;
+    }
+    wp_enqueue_script(
+        'my-private-site-mailchimp',
+        plugins_url( 'js/mailchimp.js', dirname( __FILE__ ) . '/../jonradio-private-site.php' ),
+        array(),
+        '1.0',
+        true
+    );
+} );
+
 // ADDONS - PROCESS FORM SUBMISSIONS
 function my_private_site_tab_main_process_buttons() {
-	// Process Save changes button
-	// This is a callback that has to be passed the full array for consideration
-	// phpcs:ignore WordPress.Security.NonceVerification
-	$_POST = apply_filters( 'validate_page_slug_my_private_site_tab_main', $_POST );
+        // Process Save changes button
+        // This is a callback that has to be passed the full array for consideration
+        // phpcs:ignore WordPress.Security.NonceVerification
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
+        $_POST = apply_filters( 'validate_page_slug_my_private_site_tab_main', $_POST );
 }

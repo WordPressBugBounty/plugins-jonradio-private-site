@@ -1,16 +1,16 @@
 <?php
 /*
-Plugin Name: My Private Site
+Plugin Name: My Private Site with AI Defense
 Plugin URI: http://zatzlabs.com/plugins/
-Description: Easily secure posts, pages, or your entire WordPress site by requiring visitors to login.
-Version: 3.2
+Description: Lock down your site with one click. Privacy for family, projects, or teams.
+Version: 4.0.3
 Author: David Gewirtz
 Author URI: http://zatzlabs.com/plugins/
 License: GPLv2
 */
 
 /*
-  Copyright 2014-2024  David Gewirtz (email : info@zatz.com)
+  Copyright 2014-2025  David Gewirtz (email : info@zatz.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -34,6 +34,14 @@ License: GPLv2
 */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+if ( ! defined( 'JR_PS_PLUGIN_VERSION' ) ) {
+	define( 'JR_PS_PLUGIN_VERSION', '4.0.3' );
+}
+
+if ( ! defined( 'JR_PS_PLUGIN_NAME' ) ) {
+	define( 'JR_PS_PLUGIN_NAME', 'My Private Site' );
 }
 
 global $jr_ps_path;
@@ -64,13 +72,22 @@ function jr_ps_plugin_basename() {
 	return $jr_ps_plugin_basename;
 }
 
-if ( ! function_exists( 'get_plugin_data' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+if ( ! function_exists( 'jr_ps_profiler_mark' ) ) {
+	function jr_ps_profiler_mark( $label ) {
+		if ( function_exists( 'mps_startup_profiler_mark' ) ) {
+			mps_startup_profiler_mark( $label );
+		}
+	}
 }
 
 global $jr_ps_plugin_data;
-$jr_ps_plugin_data         = get_plugin_data( __FILE__ );
-$jr_ps_plugin_data['slug'] = basename( dirname( __FILE__ ) );
+$jr_ps_plugin_data = array(
+	'Name'    => JR_PS_PLUGIN_NAME,
+	'Version' => JR_PS_PLUGIN_VERSION,
+	'slug'    => basename( dirname( __FILE__ ) ),
+);
+
+jr_ps_profiler_mark( 'mps-core:plugin-data' );
 
 /*
   Detect initial activation or a change in plugin's Version number
@@ -111,8 +128,18 @@ if ( version_compare( $old_version, $jr_ps_plugin_data['Version'], '!=' ) ) {
 	update_option( 'jr_ps_internal_settings', $internal_settings );
 }
 
+jr_ps_profiler_mark( 'mps-core:version-sync' );
+
 require_once jr_ps_path() . 'includes/common-functions.php';
-require_once jr_ps_path() . 'jonradio-private-site-admin.php';
+
+jr_ps_profiler_mark( 'mps-core:common-functions' );
+
+require_once jr_ps_path() . 'util/utilities.php';
+
+jr_ps_profiler_mark( 'mps-core:utilities' );
+
+// Legacy compatibility helpers are needed by add-ons on both admin and public requests.
+require_once jr_ps_path() . 'legacy/legacy.php';
 
 // this is the complement of the activation hook which we don't have
 // would be for going to the welcome page
@@ -142,7 +169,9 @@ jr_ps_init_settings(
 	),
 	array( 'user_submenu' )
 );
+jr_ps_profiler_mark( 'mps-core:init-settings' );
 $settings = get_option( 'jr_ps_settings' );
+jr_ps_profiler_mark( 'mps-core:settings-loaded' );
 
 /**
  * Maybe hide the admin bar based on plugin settings.
@@ -154,8 +183,46 @@ function jr_ps_maybe_hide_admin_bar() {
 	}
 }
 
+/**
+ * Privacy shortcode handler.
+ *
+ * Mirrors the legacy behaviour from the admin bootstrap but lives here so
+ * front-end requests no longer need to load the full admin stack.
+ *
+ * @param array       $atts    Shortcode attributes.
+ * @param string|null $content Wrapped content.
+ *
+ * @return string Shortcode output.
+ */
+function my_private_site_shortcode( $atts, $content = null ) {
+	if ( isset( $atts['hide-if'] ) ) {
+		$condition_to_check = strtolower( $atts['hide-if'] );
+		switch ( $condition_to_check ) {
+			case 'logged-in':
+				if ( is_user_logged_in() ) {
+					$content = '';
+				}
+				break;
+			case 'logged-out':
+				if ( ! is_user_logged_in() ) {
+					$content = '';
+				}
+				break;
+		}
+	}
+
+	return $content;
+}
+
+add_shortcode( 'privacy', 'my_private_site_shortcode' );
+jr_ps_profiler_mark( 'mps-core:shortcode-registered' );
+
 if ( is_admin() ) {
+	jr_ps_profiler_mark( 'mps-admin:bootstrap-start' );
+	require_once jr_ps_path() . 'jonradio-private-site-admin.php';
+	jr_ps_profiler_mark( 'mps-admin:admin-file-loaded' );
 	require_once jr_ps_path() . 'includes/all-admin.php';
+	jr_ps_profiler_mark( 'mps-admin:all-admin-loaded' );
 	/*
 	  Support WordPress Version 3.0.x before is_network_admin() existed
 	*/
@@ -164,15 +231,19 @@ if ( is_admin() ) {
 		if ( function_exists( 'is_plugin_active_for_network' ) && is_plugin_active_for_network( jr_ps_plugin_basename() ) ) {
 			// Network Admin Settings page for Plugin
 			require_once jr_ps_path() . 'includes/net-settings.php';
+			jr_ps_profiler_mark( 'mps-admin:network-settings-loaded' );
 		}
 	} else {
 		// Regular (non-Network) Admin pages
 		// Settings page for Plugin
 		my_private_site_init();
+		jr_ps_profiler_mark( 'mps-admin:init-complete' );
 	}
 	// All changes to all Admin-Installed Plugins pages
 	require_once jr_ps_path() . 'includes/installed-plugins.php';
+	jr_ps_profiler_mark( 'mps-admin:installed-plugins-loaded' );
 } else {
+	jr_ps_profiler_mark( 'mps-public:bootstrap-start' );
 	/*
 	  Public WordPress content, i.e. - not Admin pages
 		Do nothing if Private Site setting not set by Administrator
@@ -180,8 +251,10 @@ if ( is_admin() ) {
 	if ( $settings['private_site'] ) {
 		// Private Site code
 		require_once jr_ps_path() . 'includes/public.php';
+		jr_ps_profiler_mark( 'mps-public:public-module-loaded' );
 	}
 	add_action( 'wp_loaded', 'jr_ps_maybe_hide_admin_bar' );
+	jr_ps_profiler_mark( 'mps-public:bootstrap-complete' );
 }
 
 /**
@@ -270,5 +343,3 @@ function jr_ps_init_settings( $name, $defaults, $deletes = array() ) {
 			'blog' - Users can create new Sites in a Network
 			'all' - allows Self-Registration and the creation of new Sites in a Network
 */
-
-

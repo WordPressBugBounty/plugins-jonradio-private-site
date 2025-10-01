@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 
@@ -81,7 +81,10 @@ function my_private_site_admin_licenses_section_data( $section_options ) {
 
 // LICENSES - PROCESS ////
 function my_private_site_tab_licenses_process_buttons() {
-	// This is a callback that has to be passed the full array for consideration
-	// phpcs:ignore WordPress.Security.NonceVerification
-	$_POST = apply_filters( 'validate_page_slug_my_private_site_tab_licenses', $_POST );
+        // This is a callback that has to be passed the full array for consideration
+        // phpcs:ignore WordPress.Security.NonceVerification
+        if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+        }
+        $_POST = apply_filters( 'validate_page_slug_my_private_site_tab_licenses', $_POST );
 }

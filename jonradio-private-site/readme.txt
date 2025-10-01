@@ -1,69 +1,78 @@
-=== My Private Site ===
+=== My Private Site with AI Defense ===
 Contributors: dgewirtz
 Donate link: http://zatzlabs.com/lab-notes/
-Tags: login, visibility, private, security, pages
-Requires at least: 4.0
+Tags: login, visibility, private, security, bots
+Requires at least: 4.4
+Requires PHP: 5.4
 Tested up to: 6.8
-Stable tag: 3.2
+Stable tag: 4.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Create a Private Site visible only to your registered users.
+Lock down your site with one click. Privacy for family, projects, or teams.
 
 == Description ==
-Allows the Administrator to restrict a WordPress-based web site to viewing only by registered users who are logged on.  Any attempt, by anyone not logged, to view any Page, Post or other part of the site will display a WordPress login screen.
 
-Login prompts are provided whenever a non-logged in user ("site visitor") attempts to access any URL controlled by WordPress on the web site.
+**My Private Site** is the easiest way to make your entire WordPress site private. With one setting, you can restrict all pages and posts so they are visible only to logged-in users. Visitors who are not signed in are automatically redirected to the WordPress login screen.  
 
-**Note:** If privacy isn't turned on for your theme, use the Compatibility Mode option on the Site Privacy tab. This is known to apply to Elementor, Oxygen, and Twenty Twenty Two themes.
+Unlike full membership plugins, My Private Site does not require the overhead of subscriptions, payments, or profile management. Instead, it focuses on strong, lightweight privacy, perfect for projects where you just need to keep your site limited to a trusted audience.
 
-= More Features and Settings =
+### Ideal Use Cases
+- **Family sites and school projects**: Share personal updates, photos, or assignments only with family members, classmates, or teachers you choose.
+- **Development and staging sites**: Safely show work-in-progress to clients or teammates without exposing unfinished content or letting it be indexed by search engines.
+- **Clubs, groups, and internal blogs**: Create a private online space for members or staff without the overhead of a complex membership system.
 
-* New in 3.2: You can now hide the admin bar from the front-end for logged-in users. This feature works whether the site is set to private or not
-* Supports WordPress Networks ("Multisite"), with Network-wide Settings planned for a future version
-* A separate Setting is provided for hiding or revealing Site Home without the need to enter its URL
-* Supports Custom Login and Registration pages at URLs different than the standard WordPress Login and Registration URLs
-* Landing Location settings determine what the User sees after successfully logging in
-* Landing Location is set for both automatic Login prompts and the Meta Widget's Login link
-* New hide-if privacy shortcode allows selective content to be hidden or shown based on login status
-* User Self-Registration settings (varies between Network and Non-Network WordPress) are presented on the plugin's Settings page for easy access
-* No known Theme incompatibilities, and only known Plugin incompatibility is with the A5 Custom Login plugin
-* Special functionality is included to not hide Login- and Registration-related URLs used by BuddyPress and Theme My Login plugins
-* Remember Me improvements at Login via free companion plugin, jonradio Remember Me, which can be downloaded separately from the WordPress Plugin Repository
-* Overrides WordPress hiding of Network Activated plugins, just for itself; to provide this feature for all plugins, use the free companion plugin, Reveal Network Activated Plugins, which can be downloaded separately from the WordPress Plugin Repository
-* Setting to disable the plugin so that other plugin Settings can be changed when the Site is not set to Private
-* REST API Guardian. Turn on or off the My Private Site REST API security features. Block REST API access for logged-out users
+### Key Features
+* One-click option to make your entire WordPress site private.
+* Optional setting to keep the homepage public while locking down the rest of the site.
+* Automatic login prompts whenever non-logged-in users try to access content.
+* Flexible landing page control—send users back to the page they requested, to your homepage, dashboard, or a custom URL after login.
+* Hide the WordPress admin bar on the front end for a cleaner look.
+* REST API Guardian: block REST API access for logged-out users.
+* Works with custom login pages, Multisite, BuddyPress, and Theme My Login.
+* Privacy shortcode lets you selectively show or hide content within a page or post.
 
+### Built-in AI Defense
+The internet is rapidly changing, with AI crawlers and bots harvesting content without consent. My Private Site helps you defend your work with integrated **AI Defense** features:
+* **NoAI and NoImageAI tags**: Automatically add meta tags and headers that signal compliant AI systems not to use your text or images for training.
+* **Block GPTBot**: Add a robots.txt rule to prevent OpenAI’s crawler from accessing your site.
+* **Really Simple Licensing (RSL)**: Publish a machine-readable license that explicitly prohibits AI training on your content.
 
-If you allow Self-Registration, where new Users can Register themselves, you will need to select the "Reveal User Registration Page" setting or new Users will be blocked from seeing the WordPress Registration screen (on WordPress Networks, turning off the Reveal User Registration Page setting on the "Main Site" will prevent Registration from all Sites).  For convenience, the WordPress Setting that controls Self-Registration of Users has been added to the Plugin's Settings page.
+These protections are included free in the core plugin, easy to enable with a checkbox, and designed to safeguard your site without affecting normal visitors or search engines. You can use them even if you're not using any other site privacy features.
 
-Another Setting allows the Private Site feature to be turned off. When the plugin is installed and activated, the Private Site feature is set off by default, to allow the Administrator an opportunity to become familiarized with the plugin's features and to set the desired settings.  A warning that the site is not private appears after first activation of the plugin until the Administrator visits the plugin's Settings page.
+### Privacy Made Simple for Teams, Projects, and Families
+In short, My Private Site turns your WordPress installation into a secure, invite-only space with just a few clicks. Whether you’re running a private blog, staging a project, or safeguarding your family site, it provides peace of mind, modern AI defenses, and effortless setup—all while staying lightweight and easy to manage.
 
-If a WordPress Network is defined, the plugin can be activated individually for select sites. Or Network Activated. In either case, each site will have its own Settings page where the Private Site feature can be turned off (default) or on for just the one site, and a Landing Location defined for each site.
+### Watch the Video Overview and Demo
 
-Yes, there are other plugins that hide some or all WordPress content for any site visitor who is not logged on.  But when I was searching for a solution for one of the web sites I support, I decided to "write my own" because I knew how it worked and felt comfortable that there would be no way for anyone not logged in to view the site, including Search Engines.
+https://youtu.be/jry3DHD-OB8
 
-= Watch the intro video =
+### Premium Add-ons
+Premium add-ons turn My Private Site into a comprehensive privacy suite, giving you enterprise-style layered security defenses, smarter oversight, and flexible access, without the complexity or cost.
 
-https://youtu.be/5bW88-4BlF4
+Advanced AI Defense, Visitor Intelligence, and Block IP provide protections regardless of whether you're using any site privacy features.
 
-= Premium Add-ons =
+https://youtu.be/B6s8O9VZLc0
 
 * [Public Pages 2.0](https://zatzlabs.com/project/my-private-site-public-pages/): Allows site operators to designate certain specific pages, or pages with specified prefix, to be available to the public without login. Now also allows public site, private pages. [Watch the video](https://youtu.be/u7BuYtzS_pI)
+* [Advanced AI Defense](https://zatzlabs.com/project/my-private-site-advanced-ai-defense/): Protect WordPress content from AI crawlers using licensing, opt-out tags, selective bot blocking, and firewall defenses to control and safeguard your data. [Watch the video](https://youtu.be/Eb4qQDafaRk)
+* [Visitor Intelligence](https://zatzlabs.com/project/my-private-site-visitor-intelligence/): Track logins, logouts, failed attempts, and bot activity with a unified log, anomaly detection, and export tools for stronger site oversight and security. [Watch the video](https://youtu.be/TTK8bGVD8pM)
+* [Guest Access](https://zatzlabs.com/project/my-private-site-guest-access/): Grant temporary, secure access to private WordPress content using unique shareable links with expiration, one-time use, and full admin-controlled invite management. [Watch the video](https://youtu.be/j1vYV8lhqcc)
+* [Block IP](https://zatzlabs.com/project/my-private-site-block-ip/): Block unwanted visitors by IP address or range with full IPv4/IPv6 support, configurable scope, and fast enforcement to secure your WordPress site. [Watch the video](https://youtu.be/vsxLqYXWITs)
 * [Tags & Categories](https://zatzlabs.com/project/my-private-site-tags-and-categories/): Allows you to make pages public or (with Public Pages 2.0) private based on tags and categories. [Watch the video](https://youtu.be/dEv7lXxU5lo)
 * [Selective Content](https://zatzlabs.com/project/my-private-site-selective-content/): Allows hiding, showing, and obscurifying page content through the use of shortcodes. Can also selectively hide widgets and sidebars. [Watch the video](https://youtu.be/exgJrJJSCNY)
+* [Digital Fortress Bundle](https://zatzlabs.com/project/my-private-site-pricing/): All add-ons are available in bundle form.  [Watch the video](https://youtu.be/B6s8O9VZLc0)
 
-= Limits =
+## Limits
 
 This plugin does not hide non-WordPress web pages, such as .html and .php files. It also won’t restrict images and other media and text files directly accessed by their URL. If your hosting provider’s filesystem protections haven’t been set up correctly, files may also be accessed by directory listing.
 
-= Support Note =
+## Support Note
 
 Support has moved to the ZATZLabs site and is no longer provided on the WordPress.org forums. If you need a timely reply from the developer, please [open a ticket](http://zatzlabs.com/submit-ticket/).
 
-= Mailing List =
+## Mailing List
 If you'd like to keep up with the latest updates to this plugin, please visit [David's Lab Notes](http://zatzlabs.com/lab-notes/) and add yourself to the mailing list.
-
 
 == Installation ==
 
@@ -71,10 +80,9 @@ If you'd like to keep up with the latest updates to this plugin, please visit [D
 
 This section describes how to install the *My Private Site* plugin and get it working.
 
-1. Use **Add Plugin** within the WordPress Admin panel to download and install this *My Private Site* plugin from the WordPress.org plugin repository (preferred method).  Or download and unzip this plugin, then upload the `/jonradio-private-site/` directory to your WordPress web site's `/wp-content/plugins/` directory
-1. Activate the *My Private Site* plugin through the **Installed Plugins** Admin panel in WordPress.  If you have a WordPress Network ("Multisite"), you can either **Network Activate** this plugin, or Activate it individually on the sites where you wish to use it.
-1. Go to the plugin's Settings page to make the Site **Private**, and set where the user ends up after logging in: the **Landing Location**.
-1. If you allow Self-Registration, where new Users can set up their own User Name on your WordPress site or Network, you will want to select **Reveal User Registration Page** on the plugin's Settings page.
+* Use Add Plugin within the WordPress Admin panel to download and install this My Private Site plugin from the WordPress.org plugin repository.
+* Activate the My Private Site plugin through the Installed Plugins admin panel in WordPress. If you have a WordPress Network ("Multisite"), you can either Network Activate this plugin, or Activate it individually on the sites where you wish to use it.
+* To enable privacy, go to the My Private Site, go to the Site Privacy tab and check Enable Privacy. If you use Elementor or find that privacy doesn't seem to work, switch the Compatibility Mode setting to Theme Fix.
 
 == Frequently Asked Questions ==
 
@@ -82,15 +90,47 @@ This section describes how to install the *My Private Site* plugin and get it wo
 
 = How do I fix Redirect Loops (browser cycles for a long time then gives up)? =
 
-By far, the most common way to create a Redirect Loop on your browser with this *jonradio Private Site* plugin is to specify both Custom Login page and Landing Location on the plugin's Settings page.  Simply setting "Where to after Login?" in the Landing Location section to "Omit ?redirect_to= from URL" should correct the problem.
+By far, the most common way to create a Redirect Loop on your browser with this plugin is to specify both Custom Login page and Landing Location on the plugin's Settings page.  Simply setting "Where to after Login?" in the Landing Location section to "Omit ?redirect_to= from URL" should correct the problem.
 
 This problem has been observed when the URL of the Custom Login page is a WordPress Page.  It occurs because, for Page URLs, WordPress uses the ?redirect_to= Query keyword for purposes other than a Landing Location.
 
-= What happened?  I changed my Permalinks and now some things don't work. =
+= What happened? I changed my Permalinks and now some things don't work. =
 
-Whenever you change your WordPress Permalinks (Settings-Permalinks in Admin panels), this *jonradio Private Site* plugin does **not** automatically change any URLs you have entered in the plugin's Settings.  You will therefore want to make changes to URLs in the plugin's Settings whenever you change Permalinks.
+Whenever you change your WordPress Permalinks (Settings:Permalinks in admin panels), this My Private Site plugin does **not** automatically change any URLs you have entered in the plugin's Settings. You will therefore want to make changes to URLs in the plugin's settings whenever you change Permalinks.
+
+== Screenshots ==
+
+1.AI Defense settings active
+2.Site privacy mode enabled
+3.REST API privacy protection
+4.Plugin welcome and overview
+5.Landing page redirect options
+6.Public homepage visibility settings
+7.Shortcodes for content privacy
+8.Membership and registration options
 
 == Changelog ==
+
+= 4.0.3 =
+* Added AI Defense subsystem
+* Added built-in video tutorials for all sections
+* Added Manage Settings subtab to Advanced to save, restore, and reset settings
+* Substantially optimized plugin startup operations
+* Added subtabs engine for easier grouping of functions
+* Updated main My Private Site page to make it more readable
+* Fixed bug in mail list sign up experience
+* Refactored some of the source code for more maintainable files
+* Removed direct serialization of settings array for increased security
+* Updated EDD licensing library
+* Upgraded CMB2 library from 2.10.1 to 2.11.0
+
+= 3.2.1 =
+* Safeguarded selective content processing with nonce and capability checks
+* Hardened core admin handlers with current_user_can for membership, site privacy, landing, advanced, and more
+
+= 3.2 = 
+* Added feature to hide the admin bar from the front-end for logged-in users
+* This feature works whether the site is set to private or not
 
 = 3.1.1 =
 * Minor UI tweak to provide better clarity for theme option

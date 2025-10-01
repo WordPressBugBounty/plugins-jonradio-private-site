@@ -17,6 +17,398 @@
     grid-gap: 2em;
 }
 
+/* Main tab: make three blocks true cards (mirror Add-ons look) */
+#jr-ps-welcome .my_private_site_main_admin_grid > div,
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card,
+#jr-ps-welcome .jr-card {
+    background-color: #ffffff;
+    border: 1px solid #c3c4c7; /* WP admin card border */
+    border-radius: 4px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+/* Intro card above grid: match grid width and spacing */
+#jr-ps-welcome .jr-intro-card {
+    margin-bottom: 2em; /* align with grid gap spacing */
+}
+#jr-ps-welcome .jr-intro-card h2,
+#jr-ps-welcome .jr-intro-card .jr-intro-title {
+    margin-top: 0;
+    margin-bottom: 0.25rem; /* match h3 spacing */
+    font-size: 1.8rem !important; /* ensure larger size */
+    font-weight: 700 !important; /* strong label styling */
+    color: #2271b1 !important; /* WP admin blue */
+    line-height: 1.2;
+}
+#jr-ps-welcome .jr-intro-card p {
+    font-size: 1.05rem; /* match body text in boxes */
+    margin-top: 0.1rem; /* consistent tight spacing under heading */
+}
+
+#jr-ps-welcome .my_private_site_main_admin_grid h3 {
+    margin-top: 0;
+    margin-bottom: 0.25rem; /* tighten space under headings */
+    font-size: 1.3em; /* larger box headings */
+}
+
+/* Modern, universal font stack for this section */
+#jr-ps-welcome,
+#jr-ps-welcome label,
+#jr-ps-welcome input,
+#jr-ps-welcome select,
+#jr-ps-welcome textarea,
+#jr-ps-welcome .my_private_site_main_admin_grid {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+/* Getting started: make intro text a bit larger */
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:first-child > p:first-of-type {
+    font-size: 1.05rem;
+    margin-top: 0.1rem; /* compress top gap under heading */
+}
+
+/* Mailchimp: make body text match Getting Started intro */
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:nth-child(2) > p:first-of-type {
+    font-size: 1.05rem;
+    margin-top: 0.1rem; /* compress top gap under heading */
+}
+#jr-ps-welcome #mc_embed_signup label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Keep Mailchimp embed transparent inside card */
+#jr-ps-welcome #mc_embed_signup { background: transparent; }
+
+/* Mailchimp inputs: compact padding and empty/filled states */
+#jr-ps-welcome #mc_embed_signup input[type="email"],
+#jr-ps-welcome #mc_embed_signup input[type="text"] {
+    width: 100%;
+    padding: 3px;
+    background: #f5f6f7; /* light gray when empty */
+    border: 1px solid #9ca3af; /* darker gray default border */
+    border-radius: 8px;
+    outline: none;
+    transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+#jr-ps-welcome #mc_embed_signup input.has-value[type="email"],
+#jr-ps-welcome #mc_embed_signup input.has-value[type="text"] {
+    background: #ffffff;
+    border-color: #c3c4c7;
+}
+#jr-ps-welcome #mc_embed_signup input[type="email"]:focus,
+#jr-ps-welcome #mc_embed_signup input[type="text"]:focus {
+    background: #ffffff;
+    border-color: #2271b1; /* WP admin blue */
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.15);
+}
+
+/* Mailchimp: keep the anti-bot field hidden no matter what */
+#jr-ps-welcome #mc_embed_signup input[name^="b_"] {
+    position: absolute !important;
+    left: -5000px !important;
+}
+
+/* Mailchimp: hide/neutralize the empty response container so it doesn't look like a field */
+#jr-ps-welcome #mc_embed_signup #mce-responses {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+/* Responsive video inside left card */
+#jr-ps-welcome .video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+    border-radius: 6px;
+    overflow: hidden;
+    background: #000;
+}
+#jr-ps-welcome .video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+
+/* Mailchimp subscribe button: match WordPress primary button */
+#jr-ps-welcome #mc_embed_signup .button,
+#jr-ps-welcome #mc_embed_signup input[type="submit"] {
+    display: inline-block;
+    background: #2271b1; /* WP primary */
+    color: #fff;
+    border: 1px solid #1b5a8e;
+    border-radius: 3px;
+    padding: 6px 14px;
+    line-height: 1.5;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+}
+#jr-ps-welcome #mc_embed_signup .button:hover,
+#jr-ps-welcome #mc_embed_signup input[type="submit"]:hover {
+    background: #1b5a8e;
+    border-color: #184f7d;
+}
+#jr-ps-welcome #mc_embed_signup .button:focus,
+#jr-ps-welcome #mc_embed_signup input[type="submit"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(34,113,177,0.5);
+}
+
+/* Align subscribe button to left under inputs */
+#jr-ps-welcome #mc_embed_signup .clear {
+    text-align: left !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+#jr-ps-welcome #mc_embed_signup #mc-embedded-subscribe {
+    display: inline-block;
+    margin-left: 0 !important;
+}
+
+/* Right box links: larger, modern block-style links */
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.25rem 0 0;
+}
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child li {
+    margin: 0.35rem 0;
+}
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 0; /* align link text flush with descriptions */
+    border-radius: 6px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #2271b1;
+    text-decoration: none;
+    background: transparent;
+}
+
+#seamless-welcome .jr-addons-section-title {
+    text-transform: uppercase;
+}
+
+#seamless-welcome .jr-addons-section-title-secondary {
+    margin-top: 12px;
+}
+
+#seamless-welcome .jrps-promo-video {
+    margin-bottom: 16px;
+}
+
+/* Public Pages tutorial accordion */
+.jrps-promo-video {
+    margin-top: 12px;
+}
+.jrps-video-accordion {
+    border: 1px solid #72aee6;
+    border-radius: 4px;
+    background: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(114, 174, 230, 0.35);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.jrps-accordion-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f6f7f7;
+    border: 0;
+    border-radius: 4px 4px 0 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1d2327;
+    cursor: pointer;
+}
+.jrps-video-accordion.jrps-accordion-closed .jrps-accordion-toggle {
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+.jrps-accordion-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px rgba(34, 113, 177, 0.4);
+}
+.jrps-accordion-icon::before {
+    content: '\25BC';
+    font-size: 13px;
+    color: #50575e;
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+}
+.jrps-video-accordion.jrps-accordion-open .jrps-accordion-icon::before {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+.jrps-video-accordion.jrps-accordion-open .jrps-accordion-toggle {
+    background: #2271b1;
+    color: #ffffff;
+    border-color: #135e96;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.jrps-video-accordion.jrps-accordion-open .jrps-accordion-title {
+    color: #ffffff;
+}
+.jrps-video-accordion.jrps-accordion-open {
+    border-color: #135e96;
+    box-shadow: 0 0 0 1px rgba(19, 94, 150, 0.35);
+}
+.jrps-accordion-panel {
+    padding: 16px;
+    border-top: 1px solid #dcdcde;
+    background: #ffffff;
+}
+.jrps-video-accordion.jrps-accordion-closed .jrps-accordion-panel {
+    display: none;
+}
+.jrps-video-frame {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.jrps-video-frame iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child a::after {
+    content: '›';
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.6;
+}
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child a:hover {
+    background: #f3f4f6;
+}
+
+/* Right box link descriptions */
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child .link-desc {
+    font-size: 0.95rem;
+    color: #6b7280; /* muted */
+    margin-top: 2px;
+}
+
+/* Enlarge the intro subtext under Links & resources */
+#jr-ps-welcome .my_private_site_main_admin_grid > .jr-card:last-child > p:first-of-type {
+    font-size: 1.05rem;
+    margin-top: 0.1rem; /* compress top gap under heading */
+}
+
+/* Force Welcome title to be bigger and blue with high specificity */
+#jr-ps-welcome.jr-welcome-scope #jr-ps-welcome .jr-card.jr-intro-card h2.jr-intro-title,
+#jr-ps-welcome .jr-card.jr-intro-card h2.jr-intro-title.jr-intro-title,
+#jr-ps-welcome .jr-card.jr-intro-card h2.jr-intro-title {
+    font-size: 24px !important; /* bigger */
+    color: #2271b1 !important;  /* WP blue */
+    font-weight: 700 !important;
+    margin: 0 0 0.25rem 0 !important;
+}
+
+/* Alt target: inner span to sidestep admin heading resets */
+#jr-ps-welcome .jr-intro-card .jr-intro-title-text {
+    display: inline-block;
+    font-size: 24px !important;
+    color: #2271b1 !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+/* Global admin warning text for AI Defense messages */
+.jrps-ai-warning {
+    color: #b32d2e; /* WP error red */
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0.25rem 0;
+}
+.jrps-ai-warning a {
+    display: inline;
+    line-height: inherit;
+    font-weight: inherit;
+}
+
+/* Inline variant used under individual checkboxes */
+.jrps-ai-warning-inline {
+    display: block;       /* force onto a new line under checkbox label */
+    margin: 6px 0 0 6px;  /* tighter spacing + slight indent */
+    font-size: 14px;      /* slightly smaller than default */
+}
+
+/* AI Defense – Disallow bots block warnings: align left and tighten spacing */
+.cmb2-id-jr-ps-admin-ai-disallow-agents-warning .cmb-th,
+#jr_ps_admin_ai_disallow_agents_warning .cmb-th { display: none; }
+.cmb2-id-jr-ps-admin-ai-disallow-agents-warning .cmb-td,
+#jr_ps_admin_ai_disallow_agents_warning .cmb-td { margin-left: 0; padding-left: 0; padding-top: 4px; }
+.cmb2-id-jr-ps-admin-ai-disallow-agents-warning,
+#jr_ps_admin_ai_disallow_agents_warning { margin-top: 0; margin-bottom: 6px; border-top: 0 !important; padding-top: 0; }
+.cmb2-id-jr-ps-admin-ai-disallow-agents-warning .jrps-ai-warning-inline,
+#jr_ps_admin_ai_disallow_agents_warning .jrps-ai-warning-inline { margin: 2px 0; font-size: 14px; }
+
+/* Unified status banner (matches Visitor Intelligence banner style) */
+.jrps-vi-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #b91c1c; /* default alert border (red) */
+    background: #dc2626;       /* default alert bg (red) */
+    color: #ffffff;            /* default alert text (white) */
+    font-weight: 600;
+    margin: 8px 0 14px;        /* small top margin, then space below */
+    font-size: 24px;           /* large banner text */
+    width: 100%;               /* span full width of container */
+    box-sizing: border-box;    /* include padding in width */
+}
+.jrps-vi-banner .dashicons {
+    font-size: 27px; /* large icon */
+    width: 28px;
+    height: 28px;
+}
+.jrps-vi-banner.is-ok {
+    border-color: #15803d;
+    background: #16a34a; /* deeper green */
+    color: #ffffff;      /* white text */
+}
+.jrps-vi-banner.is-ok .dashicons {
+    background: #ffffff;           /* white circle behind icon */
+    color: #16a34a;                /* green check to contrast */
+    border-radius: 999px;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.jrps-vi-banner:not(.is-ok) .dashicons {
+    background: transparent;
+    color: #ffffff; /* white icon on red banner */
+    border-radius: 0;
+    display: inline-block;
+}
+.jrps-vi-banner:not(.is-ok) .dashicons:before { /* use default Dashicons glyph */ }
+
 
 /* Fix header issue */
 .option-my_private_site_tab_main input#submit-cmb.button.button-primary {
@@ -71,7 +463,9 @@
 }
 
 .cmb2-metabox-title  {
-    font-size: 1.2em !important;
+    font-size: 24px !important;   /* match .summary-title in banner */
+    font-weight: 600 !important;  /* same emphasis */
+    line-height: 1.2;             /* comfortable spacing */
 }
 
 .my_private_site_addon_grid div {

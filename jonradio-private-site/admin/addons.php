@@ -6,7 +6,7 @@
  * Plugin Page: https://zatzlabs.com/project/my-private-site/
  * Contact: http://zatzlabs.com/contact-us/
  *
- * Copyright (c) 2015-2020 by David Gewirtz
+ * Copyright (c) 2015-2025 by David Gewirtz
  */
 
 // Exit if .php file accessed directly
@@ -15,6 +15,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'cmb2_admin_init', 'my_private_site_admin_addons_menu' );
+add_action( 'admin_enqueue_scripts', 'my_private_site_addons_enqueue_tutorial_assets' );
+
+function my_private_site_addons_enqueue_tutorial_assets( $hook ) {
+	// Load accordion script only on the Add-ons tab.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+	if ( 'my_private_site_tab_addons' !== $page ) {
+		return;
+	}
+
+	$script_path = plugin_dir_path( __FILE__ ) . '../js/tutorial-accordion.js';
+	$script_url  = plugins_url( 'js/tutorial-accordion.js', dirname( __FILE__ ) . '/../jonradio-private-site.php' );
+	$script_ver  = file_exists( $script_path ) ? filemtime( $script_path ) : null;
+
+	wp_enqueue_script( 'my-private-site-tutorial-accordion', $script_url, array(), $script_ver, true );
+}
 
 // ADDONS - MENU ////
 function my_private_site_admin_addons_menu() {
@@ -91,7 +107,9 @@ function my_private_site_render_addons_tab_html( $field_args, $field ) {
 
 	// PHPCS Sniffer errored on this, but we're just getting the contents of a local file
 	$html_readme = file_get_contents( $html_file );
-    $html_readme = str_replace( '%CONTENT_URL%', content_url(), $html_readme);
+	$html_readme = str_replace( '%CONTENT_URL%', content_url(), $html_readme );
+	$digital_fortress_url = esc_url( my_private_site_get_tutorial_video_url( 'digital_fortress_overview_tutorial' ) );
+	$html_readme = str_replace( '%DIGITAL_FORTRESS_VIDEO_URL%', $digital_fortress_url, $html_readme );
 
 	$allowed_html = array(
 		'a'   => array(
@@ -100,16 +118,39 @@ function my_private_site_render_addons_tab_html( $field_args, $field ) {
 			'class' => array(),
 		),
 		'div' => array(
-			'id'    => array(),
+			'id'               => array(),
+			'class'            => array(),
+			'data-storage-key' => array(),
+			'role'             => array(),
+			'aria-labelledby'  => array(),
+			'hidden'           => true,
+		),
+		'h3'  => array(
 			'class' => array(),
 		),
-		'h3'  => array(),
 		'h4'  => array(),
 		'p'   => array(),
+		'button' => array(
+			'class'          => array(),
+			'aria-expanded'  => array(),
+			'aria-controls'  => array(),
+			'type'           => array(),
+		),
+		'span'   => array(
+			'class'        => array(),
+			'id'           => array(),
+			'aria-hidden'  => array(),
+		),
+		'iframe' => array(
+			'src'             => array(),
+			'title'           => array(),
+			'frameborder'     => array(),
+			'allow'           => array(),
+			'allowfullscreen' => true,
+		),
 		'img' => array(
 			'src' => array(),
 		),
 	);
 	echo wp_kses( $html_readme, $allowed_html );
 }
-

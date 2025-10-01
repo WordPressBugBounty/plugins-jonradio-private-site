@@ -1,6 +1,6 @@
 <div id="jr-ps-welcome">
-    <div>
-        <h1>Welcome to My Private Site!</h1>
+    <div class="jr-card jr-intro-card">
+        <h2 class="jr-intro-title"><span class="jr-intro-title-text">Welcome to My Private Site!</span></h2>
         <p><b>Easily secure posts, pages, or your entire WordPress site by requiring visitors to login</b></p>
         <p>This plugin creates a Private Site that requires site visitors login before viewing your web site.
             The only things visible to anyone not logged in (and this includes search engines) are your site's WordPress
@@ -12,18 +12,19 @@
             browser's directory view, if available.
             </ul>
         <p>To see your site, each visitor will need to be registered as a user on your WordPress site.
-            They will also have to enter their username and password on the WordPress login screen.</p>
-        <p>You can choose what they see immediately after they login by selecting a Landing Page.</p>
+            They will also have to enter their username and password on the WordPress login screen. You can choose what they see immediately after they login by selecting a Landing Page.</p>
     </div>
     <div class="my_private_site_main_admin_grid">
-        <div>
+        <div class="jr-card">
             <h3>Getting started</h3>
             <p>The best way to get started with My Private Site is to watch the Getting Started video below.</p>
-            <iframe width="420" height="236" src="https://www.youtube.com/embed/5bW88-4BlF4" frameborder="0"
-                    allowfullscreen></iframe>
+            <div class="video-wrapper">
+                <iframe width="420" height="236" src="{{MPS_TUTORIAL_DASHBOARD}}" frameborder="0" allowfullscreen></iframe>
+            </div>
         </div>
-        <div>
+        <div class="jr-card">
             <h3>Stay up to date</h3>
+            <p>Sign up for important update and maintenance information. This is a very low-traffic list.</p>
             <!-- Begin MailChimp Signup Form -->
             <link href="//cdn-images.mailchimp.com/embedcode/classic-081711.css" rel="stylesheet" type="text/css">
             <style type="text/css">
@@ -31,43 +32,66 @@
                     clear: left;
                     font: 14px Helvetica, Arial, sans-serif;
                 }
+                /* Lightweight inline feedback styles */
+                #mc-local-response { margin-top: 8px; color: #2271b1; }
+                #mc-local-response:empty { display: none; }
+                #mc-local-response.is-error { color: #b32d2e; }
+                #mc-local-response.is-success { color: #198754; }
+
+                /* Balance spacing around the subscribe button */
+                #mc_embed_signup #mc_embed_signup_scroll { padding-bottom: 9px; }
+                #mc_embed_signup .mc-field-group { margin-bottom: 5px; }
+                #mc_embed_signup .mc-field-group label { display:block; margin-bottom: 1px; }
+                #mc_embed_signup .clear { margin-bottom: 5px; }
+                #mc_embed_signup input#mc-embedded-subscribe.button.button-primary {
+                    /* external spacing */
+                    margin-top: 5px;
+                    margin-bottom: 9px;
+                    /* internal spacing: ensure even vertical padding */
+                    height: auto;
+                    line-height: 1.6;
+                    padding-top: 6px;
+                    padding-bottom: 6px;
+                    padding-left: 12px;
+                    padding-right: 12px;
+                }
 
                 /* Add your own MailChimp form style overrides in your site stylesheet or in this style block.
                    We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
             </style>
             <div id="mc_embed_signup">
-                <form action="//zatzlabs.us10.list-manage.com/subscribe/post?u=81b10c30eeed8b4ec79c86d53&amp;id=f56ca4c04e"
-                      method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate"
-                      target="_blank" novalidate>
+                <div id="mc-embedded-subscribe-form" class="validate" data-action="//zatzlabs.us10.list-manage.com/subscribe/post-json?u=81b10c30eeed8b4ec79c86d53&amp;id=f56ca4c04e&amp;c=?">
                     <div id="mc_embed_signup_scroll">
 
-                        <div class="indicates-required"><span class="asterisk">*</span> indicates required</div>
+                        <!-- Removed global required note; show inline on email label -->
                         <div class="mc-field-group">
-                            <label for="mce-EMAIL">Email Address <span class="asterisk">*</span>
+                            <label for="mce-EMAIL">Email Address (required)
                             </label>
-                            <input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+                            <input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL" autocomplete="email" required>
                         </div>
                         <div class="mc-field-group">
                             <label for="mce-FNAME">First Name </label>
-                            <input type="text" value="" name="FNAME" class="" id="mce-FNAME">
+                            <input type="text" value="" name="FNAME" class="" id="mce-FNAME" autocomplete="given-name">
                         </div>
                         <div class="mc-field-group">
                             <label for="mce-LNAME">Last Name </label>
-                            <input type="text" value="" name="LNAME" class="" id="mce-LNAME">
+                            <input type="text" value="" name="LNAME" class="" id="mce-LNAME" autocomplete="family-name">
                         </div>
-                        <div id="mce-responses" class="clear">
+                        <div id="mce-responses" class="clear" aria-live="polite" aria-atomic="true" role="status">
                             <div class="response" id="mce-error-response" style="display:none"></div>
                             <div class="response" id="mce-success-response" style="display:none"></div>
                         </div>
                         <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-                        <div style="position: absolute; left: -5000px;"><input type="text"
+                        <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text"
                                                                                name="b_81b10c30eeed8b4ec79c86d53_f56ca4c04e"
                                                                                tabindex="-1" value=""></div>
-                        <div class="clear"><input type="submit" value="Subscribe" name="subscribe"
-                                                  id="mc-embedded-subscribe" class="button"></div>
+                        <div class="clear"><input type="button" value="Subscribe" name="subscribe"
+                                                  id="mc-embedded-subscribe" class="button button-primary"></div>
+                        <div id="mc-local-response" aria-live="polite" role="status"></div>
                     </div>
-                </form>
+                </div>
             </div>
+            <!-- Optional: Mailchimp's validation script (not required for JSONP submit) -->
             <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script>
             <script type='text/javascript'>(function ($) {
                 window.fnames = new Array();
@@ -80,23 +104,143 @@
                 ftypes[2] = 'text';
             }(jQuery));
             var $mcj = jQuery.noConflict(true);</script>
+            <script>
+                (function(){
+                    var container = document.getElementById('mc-embedded-subscribe-form');
+                    if(!container) return;
+                    var inputs = container.querySelectorAll('input[type="email"], input[type="text"]');
+                    function update(){
+                        inputs.forEach(function(i){
+                            if(i.value && i.value.trim() !== ''){ i.classList.add('has-value'); }
+                            else { i.classList.remove('has-value'); }
+                        });
+                    }
+                    inputs.forEach(function(i){
+                        i.addEventListener('input', update);
+                        i.addEventListener('change', update);
+                    });
+                    update();
+
+                    // Provide immediate, visible feedback when the form is submitted
+                    var localMsg = document.getElementById('mc-local-response');
+                    // If sanitizer stripped the element, create it dynamically
+                    if(!localMsg){
+                        localMsg = document.createElement('div');
+                        localMsg.id = 'mc-local-response';
+                        localMsg.setAttribute('aria-live','polite');
+                        localMsg.setAttribute('role','status');
+                        var submitRow = document.getElementById('mc-embedded-subscribe');
+                        if(submitRow && submitRow.parentNode){
+                            submitRow.parentNode.insertAdjacentElement('afterend', localMsg);
+                        } else {
+                            container.appendChild(localMsg);
+                        }
+                    }
+                    var clickMsgBtn = document.getElementById('mc-embedded-subscribe');
+                    if(clickMsgBtn){
+                        clickMsgBtn.addEventListener('click', function(){
+                            if(!localMsg) return;
+                            localMsg.classList.remove('is-error','is-success');
+                            localMsg.textContent = 'Submitting…';
+                        });
+                    }
+
+                    // Mirror Mailchimp success/error messages into our inline area if available
+                    var success = document.getElementById('mce-success-response');
+                    var error = document.getElementById('mce-error-response');
+                    if(localMsg && (success || error)){
+                        var observer = new MutationObserver(function(){
+                            var text = '';
+                            var isError = false;
+                            if(error && error.textContent.trim()){ text = error.textContent.trim(); isError = true; }
+                            if(success && success.textContent.trim()){ text = success.textContent.trim(); isError = false; }
+                            if(text){
+                                localMsg.textContent = text;
+                                localMsg.classList.toggle('is-error', isError);
+                                localMsg.classList.toggle('is-success', !isError);
+                            }
+                        });
+                        if(error) observer.observe(error, { childList: true, subtree: true, characterData: true });
+                        if(success) observer.observe(success, { childList: true, subtree: true, characterData: true });
+                    }
+
+                    // Submit via JSONP to avoid popups and stay inline (no nested form submit)
+                    function collectParams(){
+                        var q = [];
+                        inputs.forEach(function(el){
+                            if(!el.name || el.disabled) return;
+                            q.push(encodeURIComponent(el.name) + '=' + encodeURIComponent(el.value || ''));
+                        });
+                        return q.join('&');
+                    }
+
+                    var button = document.getElementById('mc-embedded-subscribe');
+                    if(button){
+                        button.addEventListener('click', function(){
+                            if(localMsg){
+                                localMsg.classList.remove('is-error','is-success');
+                                localMsg.textContent = 'Submitting…';
+                            }
+
+                            var base = container.getAttribute('data-action') || '';
+                            var cbName = '__mc_cb_' + Math.random().toString(36).slice(2);
+                            var url = base.replace(/&?c=\?/, '') + '&c=' + cbName + '&' + collectParams();
+
+                            window[cbName] = function(resp){
+                                try {
+                                    if(localMsg){
+                                        var isError = resp.result !== 'success';
+                                        localMsg.textContent = (resp.msg || (isError ? 'Subscription failed.' : 'Thanks, confirmed.'))
+                                            .toString()
+                                            .replace(/^\d+\s*-\s*/, '');
+                                        localMsg.classList.toggle('is-error', isError);
+                                        localMsg.classList.toggle('is-success', !isError);
+                                    }
+                                } finally {
+                                    if(script && script.parentNode) script.parentNode.removeChild(script);
+                                    try { delete window[cbName]; } catch(e){ window[cbName] = undefined; }
+                                }
+                            };
+
+                            var script = document.createElement('script');
+                            script.src = url;
+                            script.onerror = function(){
+                                if(localMsg){
+                                    localMsg.textContent = 'Network error. Please try again.';
+                                    localMsg.classList.add('is-error');
+                                }
+                                if(script.parentNode) script.parentNode.removeChild(script);
+                                try { delete window[cbName]; } catch(e){ window[cbName] = undefined; }
+                            };
+                            document.body.appendChild(script);
+                        });
+                    }
+                })();
+            </script>
             <!--End mc_embed_signup-->
         </div>
-        <div>
-            <h3>Ticket-based support</h3>
-            Support has moved to the ZATZLabs site and is no longer provided on the WordPress.org forums. If you need
-            support from the developer, please <A href="http://zatzlabs.com/submit-ticket/">open a ticket</A>.
-            <h3>Links & Resources</h3>
-
+        <div class="jr-card">
+            <h3>Links & resources</h3>
+            <p>Here's how to find out more about My Private Site.</p>
             <ul>
-                <li><A href="http://zatzlabs.com/lab-notes/">David's Lab Notes</A></li>
-                <li><A href="https://zatzlabs.com/project/my-private-site-plugins-and-extensions/">Add-ons and
-                    Extensions</A></li>
-                <li>Support: <A href="http://zatzlabs.com/submit-ticket/">Submit Help Ticket</A></li>
-                <li><A href="http://zatzlabs.com/contact-us/">Contact Us</A></li>
+                <li>
+                    <a href="http://zatzlabs.com/lab-notes/">David's Lab Notes</a>
+                    <div class="link-desc">This is David's technical blog for users of My Private Site.</div>
+                </li>
+                <li>
+                    <a href="https://zatzlabs.com/project/my-private-site-plugins-and-extensions/">Add-ons and Extensions</a>
+                    <div class="link-desc">Add new and powerful capabilities to My Private Site.</div>
+                </li>
+                <li>
+                    <a href="http://zatzlabs.com/submit-ticket/">Submit Help Ticket</a>
+                    <div class="link-desc">Please use this mechanism for rapid replies directly from the developer.</div>
+                </li>
+                <li>
+                    <a href="http://zatzlabs.com/contact-us/">Contact Us</a>
+                    <div class="link-desc">Reach out here for non tech support issues. Use tickets for tech support.</div>
+                </li>
             </ul>
         </div>
     </div>
 
 </div>
-
