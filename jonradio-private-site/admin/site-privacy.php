@@ -56,13 +56,14 @@ add_action( 'cmb2_admin_init', 'my_private_site_admin_site_privacy_menu' );
 add_action( 'admin_enqueue_scripts', 'my_private_site_site_privacy_enqueue_tutorial_assets' );
 
 add_action( 'admin_post_my_private_site_retest_robots', 'my_private_site_handle_retest_robots' );
+add_action( 'admin_notices', 'my_private_site_show_recaptcha_login_notice' );
 
 function my_private_site_handle_retest_robots() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'Insufficient permissions.', 'my-private-site' ), 403 );
 	}
 
-	$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+	$nonce = isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '';
 	if ( ! wp_verify_nonce( $nonce, 'my_private_site_retest_robots' ) ) {
 		wp_die( esc_html__( 'Security violation detected [A012]. Access denied.', 'my-private-site' ), 403 );
 	}
@@ -73,10 +74,13 @@ function my_private_site_handle_retest_robots() {
 		my_private_site_robots_url_is_404( true );
 	}
 
-	$still_404 = function_exists( 'my_private_site_robots_url_is_404' ) ? my_private_site_robots_url_is_404() : false;
+	$still_404       = function_exists( 'my_private_site_robots_url_is_404' ) ? my_private_site_robots_url_is_404() : false;
+	$physical_robots = function_exists( 'my_private_site_physical_robots_exists' ) && my_private_site_physical_robots_exists();
 	if ( function_exists( 'my_private_site_set_ai_defense_notice' ) ) {
 		if ( $still_404 ) {
 			my_private_site_set_ai_defense_notice( 'robots.txt is still returning 404. Ensure the server routes robots.txt to WordPress and try again.', 'warning' );
+		} elseif ( $physical_robots ) {
+			my_private_site_set_ai_defense_notice( 'robots.txt file exists in the site root. Related AI crawler defense options remain disabled.', 'warning' );
 		} else {
 			my_private_site_set_ai_defense_notice( 'robots.txt check passed. Related options can now be enabled.', 'success' );
 		}
@@ -89,6 +93,44 @@ function my_private_site_handle_retest_robots() {
 
 	wp_safe_redirect( $redirect );
 	exit;
+}
+
+function my_private_site_show_recaptcha_login_notice() {
+	if ( ! is_admin() ) {
+		return;
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+	if ( 'my_private_site_tab_site_privacy' !== $page ) {
+		return;
+	}
+
+	$internal_settings = get_option( 'jr_ps_internal_settings' );
+	if ( ! is_array( $internal_settings ) || empty( $internal_settings['recaptcha_login_notice'] ) ) {
+		return;
+	}
+
+	$message = (string) $internal_settings['recaptcha_login_notice'];
+	$type    = isset( $internal_settings['recaptcha_login_notice_type'] )
+		? (string) $internal_settings['recaptcha_login_notice_type']
+		: 'error';
+	$class = 'notice';
+	switch ( $type ) {
+		case 'warning':
+			$class .= ' notice-warning';
+			break;
+		case 'success':
+			$class .= ' notice-success';
+			break;
+		default:
+			$class .= ' notice-error';
+			break;
+	}
+
+	echo '<div class="' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+
+	unset( $internal_settings['recaptcha_login_notice'], $internal_settings['recaptcha_login_notice_type'] );
+	update_option( 'jr_ps_internal_settings', $internal_settings );
 }
 
 function my_private_site_site_privacy_enqueue_tutorial_assets( $hook ) {
@@ -283,6 +325,128 @@ function my_private_site_admin_rest_api_section_data( $section_options ) {
 		)
 	);
 
+	$registration_spam_checks = array();
+	if ( isset( $settings['registration_spam_guard_checks'] ) && is_array( $settings['registration_spam_guard_checks'] ) ) {
+		$registration_spam_checks = array_filter( $settings['registration_spam_guard_checks'] );
+	}
+	$registration_spam_active = ! empty( $registration_spam_checks );
+	$registration_spam_status = my_private_site_build_status_banner(
+		$registration_spam_active,
+		'REGISTRATION SPAM GUARD ACTIVE',
+		'REGISTRATION SPAM GUARD DISABLED'
+	);
+	$registration_spam_desc  = '<i>Stop automated registration spam before it hits your user list.</i>';
+	$registration_spam_desc .= $registration_spam_status;
+
+	$section_options->add_field(
+		array(
+			'name'           => 'REGISTRATION SPAM GUARD',
+			'id'             => 'jr_ps_admin_rest_api_registration_spam_guard_promo',
+			'type'           => 'title',
+			'after_field'    => $registration_spam_desc,
+			'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
+			'secondary_tab'  => 'protection',
+			'secondary_title'=> 'Protection',
+		)
+	);
+
+	$section_options->add_field(
+		array(
+			'name'              => 'Registration Spam Guard',
+			'id'                => 'jr_ps_admin_registration_spam_guard_checks',
+			'type'              => 'multicheck',
+			'select_all_button' => false,
+			'options'           => array(
+				'honeypot'            => 'Enable honeypot field on registration form',
+				'gibberish_username'  => 'Block registrations with excessively long gibberish usernames',
+				'excessive_dots'      => 'Block registrations with excessive dots in email address',
+				'missing_mx'          => 'Block registrations when email domain lacks MX records',
+				'stop_forum_spam'     => 'Check registrants against StopForumSpam database',
+			),
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_registration_spam_guard_checks', $handler_function );
+
+	my_private_site_display_cmb2_submit_button(
+		$section_options,
+		array(
+			'button_id'          => 'jr_ps_button_registration_spam_guard_save',
+			'button_text'        => 'Save Spam Guard Options',
+			'button_success_msg' => 'Spam guard options saved.',
+			'button_error_msg'   => '',
+		)
+	);
+
+	$recaptcha_login_enabled = ! empty( $settings['recaptcha_login_guard_enabled'] );
+	$recaptcha_site_key      = isset( $settings['recaptcha_login_guard_site_key'] ) ? trim( $settings['recaptcha_login_guard_site_key'] ) : '';
+	$recaptcha_secret_key    = isset( $settings['recaptcha_login_guard_secret_key'] ) ? trim( $settings['recaptcha_login_guard_secret_key'] ) : '';
+	$recaptcha_has_keys      = ( $recaptcha_site_key !== '' && $recaptcha_secret_key !== '' );
+	$recaptcha_login_active  = ( $recaptcha_login_enabled && $recaptcha_has_keys );
+	$recaptcha_login_status = my_private_site_build_status_banner(
+		$recaptcha_login_active,
+		'RECAPTCHA LOGIN GUARD ACTIVE',
+		'RECAPTCHA LOGIN GUARD DISABLED'
+	);
+	$recaptcha_login_desc  = '<i>Protect login forms with reCAPTCHA challenges.</i>';
+	$recaptcha_login_desc .= $recaptcha_login_status;
+	$recaptcha_login_desc .= '<div class="jrps-recaptcha-note">Learn about reCAPTCHA at '
+		. '<a href="https://www.google.com/recaptcha/about/" target="_blank" rel="noopener noreferrer">Google reCAPTCHA</a> '
+		. 'and set up keys at <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">reCAPTCHA Admin</a>. '
+		. 'For reCAPTCHA type choose "Challenge (v2)" and "I\'m not a robot" checkbox.'
+		. '</div>';
+
+	$section_options->add_field(
+		array(
+			'name'           => 'reCAPTCHA LOGIN GUARD',
+			'id'             => 'jr_ps_admin_rest_api_recaptcha_login_guard_promo',
+			'type'           => 'title',
+			'after_field'    => $recaptcha_login_desc,
+			'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
+			'secondary_tab'  => 'protection',
+			'secondary_title'=> 'Protection',
+		)
+	);
+
+	$section_options->add_field(
+		array(
+			'name'  => 'reCAPTCHA Login Guard',
+			'id'    => 'jr_ps_admin_recaptcha_login_guard_enable',
+			'type'  => 'checkbox',
+			'after' => 'Enable reCAPTCHA Login Guard',
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_login_guard_enable', $handler_function );
+
+	$section_options->add_field(
+		array(
+			'name' => 'Site Key',
+			'id'   => 'jr_ps_admin_recaptcha_site_key',
+			'type' => 'text',
+			'desc' => 'Google reCAPTCHA site key.',
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_site_key', $handler_function );
+
+	$section_options->add_field(
+		array(
+			'name' => 'Secret Key',
+			'id'   => 'jr_ps_admin_recaptcha_secret_key',
+			'type' => 'text',
+			'desc' => 'Google reCAPTCHA secret key.',
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_secret_key', $handler_function );
+
+	my_private_site_display_cmb2_submit_button(
+		$section_options,
+		array(
+			'button_id'          => 'jr_ps_button_recaptcha_login_save',
+			'button_text'        => 'Save reCAPTCHA Settings',
+			'button_success_msg' => 'reCAPTCHA settings saved.',
+			'button_error_msg'   => '',
+		)
+	);
+
 	$block_ip_tutorial_url = esc_url( my_private_site_get_tutorial_video_url( 'block_ip_protection_tutorial' ) );
 	$block_ip_desc  = '<i>Block all matching IP addresses.</i><br>';
 	$block_ip_desc .= my_private_site_get_feature_promo(
@@ -337,30 +501,30 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
     $ai_active      = ( $enabled_count > 0 );
 
     // When AAD is not active, enrich the green banner with a count suffix.
-    $ok_label = 'AI DEFENSE ACTIVE';
+    $ok_label = 'AI CRAWLER DEFENSE ACTIVE';
     if ( ! function_exists( 'my_private_site_is_aad_active' ) || ! my_private_site_is_aad_active() ) {
         if ( $ai_active ) {
             $ok_label .= ' (' . $enabled_count . ' DEFENSE' . ( $enabled_count === 1 ? '' : 'S' ) . ' DEPLOYED)';
         }
     }
-    $ai_status = my_private_site_build_status_banner( $ai_active, $ok_label, 'AI DEFENSE DISABLED' );
+    $ai_status = my_private_site_build_status_banner( $ai_active, $ok_label, 'AI CRAWLER DEFENSE DISABLED' );
 
     // Subhead + status, matching REST API Guardian style
-    $ai_section_desc  = '<i>Turn on or off the My Private Site AI defense features.</i>';
+    $ai_section_desc  = '<i>Turn on or off the My Private Site AI crawler defense features.</i>';
     $ai_section_desc .= $ai_status;
     // Do not show robots warnings here; they will appear below the related checkboxes for clarity
 
     // Header row which creates the subtab and shows status
     $section_options->add_field(
         array(
-            'name'           => 'AI Defense',
+            'name'           => 'AI Crawler Defense',
             'id'             => 'jr_ps_admin_ai_defense_title',
             'type'           => 'title',
             'after_field'    => $ai_section_desc,
             // Secondary tab controls: this starts the "AI Defense" subtab section
             'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
             'secondary_tab'  => 'ai-intelligence',
-            'secondary_title'=> 'AI Defense',
+            'secondary_title'=> 'AI Crawler Defense',
         )
     );
 
@@ -392,7 +556,7 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
                 'name'       => 'Block Using RSL',
                 'id'         => 'jr_ps_admin_ai_defense_enable',
                 'type'       => 'checkbox',
-                'after'      => 'Block AI bot access using Really Simple Licensing (Prohibit AI training)' . $robots_inline_msg,
+                'after'      => 'Block AI crawler access using Really Simple Licensing (Prohibit AI training)' . $robots_inline_msg,
                 'attributes' => $ai_checkbox_attributes,
             )
         );
@@ -418,7 +582,7 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
                 'name'  => 'NoAI / NoImageAI',
                 'id'    => 'jr_ps_admin_ai_noai_enable',
                 'type'  => 'checkbox',
-                'after' => 'Block AI access using NoAI and NoImageAI tags in meta tag and X-Robots-Tag headers',
+                'after' => 'Block AI crawler access using NoAI and NoImageAI tags in meta tag and X-Robots-Tag headers',
             )
         );
         my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_ai_noai_enable', $handler_function );
@@ -426,14 +590,14 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
         // Save button for all AI Defense options (always enabled; saves available options)
         $ai_button_options = array(
             'button_id'          => 'jr_ps_button_ai_defense_save',
-            'button_text'        => 'Save AI Defense Options',
-            'button_success_msg' => 'AI Defense options saved.',
+            'button_text'        => 'Save AI Crawler Defense Options',
+            'button_success_msg' => 'AI crawler defense options saved.',
             'button_error_msg'   => '',
         );
 	    my_private_site_display_cmb2_submit_button( $section_options, $ai_button_options );
     }
 
-	$advanced_ai_desc  = '<i>Comprehensive AI bot protection with layered defense countermeasures.</i><br>';
+	$advanced_ai_desc  = '<i>Comprehensive AI crawler protection with layered defense countermeasures.</i><br>';
 	$advanced_ai_desc .= my_private_site_get_feature_promo(
 		'Protect WordPress content from AI crawlers using licensing, opt-out tags, selective bot blocking, and firewall defenses to control and safeguard your data.',
 		'https://zatzlabs.com/project/my-private-site-plugins-and-extensions/',
@@ -444,7 +608,7 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
 
 	$section_options->add_field(
 		array(
-			'name'           => 'ADVANCED AI DEFENSE',
+			'name'           => 'ADVANCED AI CRAWLER DEFENSE',
 			'id'             => 'jr_ps_admin_ai_defense_promo',
 			'type'           => 'title',
 			'after_field'    => $advanced_ai_desc
@@ -456,7 +620,7 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
 				. '</button>'
 				. '<div class="jrps-accordion-panel" id="jrps-ai-defense-tutorial-panel" role="region" aria-labelledby="jrps-ai-defense-tutorial-heading">'
 				. '<div class="jrps-video-frame">'
-				. '<iframe src="' . $advanced_ai_tutorial_url . '" title="My Private Site Advanced AI Defense Tutorial" '
+				. '<iframe src="' . $advanced_ai_tutorial_url . '" title="My Private Site Advanced AI Crawler Defense Tutorial" '
 				. 'frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
 				. '</div>'
 				. '</div>'
@@ -464,7 +628,7 @@ function my_private_site_admin_ai_intelligence_section_data( $section_options ) 
 				. '</div>',
 			'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
 			'secondary_tab'  => 'ai-intelligence',
-			'secondary_title'=> 'AI Defense',
+			'secondary_title'=> 'AI Crawler Defense',
 		)
 	);
 }
@@ -629,7 +793,7 @@ function my_private_site_tab_site_privacy_process_buttons() {
 				flush_rewrite_rules( false );
 			}
 				// Generic admin notice
-				my_private_site_set_ai_defense_notice( 'AI defense options saved.', 'success' );
+				my_private_site_set_ai_defense_notice( 'AI crawler defense options saved.', 'success' );
 				my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_ai_defense_save' );
 		}
 	if ( isset( $_POST['jr_ps_button_rest_api_save'], $_POST['jr_ps_button_rest_api_save_nonce'] ) ) {
@@ -646,6 +810,82 @@ function my_private_site_tab_site_privacy_process_buttons() {
 
 		$result = update_option( 'jr_ps_settings', $settings );
 		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_rest_api_save' );
+	}
+	if ( isset( $_POST['jr_ps_button_registration_spam_guard_save'], $_POST['jr_ps_button_registration_spam_guard_save_nonce'] ) ) {
+		if ( ! wp_verify_nonce( $_POST['jr_ps_button_registration_spam_guard_save_nonce'], 'jr_ps_button_registration_spam_guard_save' ) ) {
+			wp_die( 'Security violation detected [A013]. Access denied.', 'Security violation', array( 'response' => 403 ) );
+		}
+
+		$allowed_checks = array(
+			'honeypot'           => true,
+			'gibberish_username' => true,
+			'excessive_dots'     => true,
+			'missing_mx'         => true,
+			'stop_forum_spam'    => true,
+		);
+		$spam_guard_checks = array();
+		// phpcs:ignore WordPress.Security.NonceVerification
+		if ( isset( $_POST['jr_ps_admin_registration_spam_guard_checks'] ) && is_array( $_POST['jr_ps_admin_registration_spam_guard_checks'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification
+			foreach ( $_POST['jr_ps_admin_registration_spam_guard_checks'] as $check ) {
+				$check = sanitize_key( wp_unslash( $check ) );
+				if ( '' !== $check && isset( $allowed_checks[ $check ] ) ) {
+					$spam_guard_checks[] = $check;
+				}
+			}
+		}
+
+		$settings['registration_spam_guard_checks'] = array_values( array_unique( $spam_guard_checks ) );
+
+		$result = update_option( 'jr_ps_settings', $settings );
+		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_registration_spam_guard_save' );
+	}
+	if ( isset( $_POST['jr_ps_button_recaptcha_login_save'], $_POST['jr_ps_button_recaptcha_login_save_nonce'] ) ) {
+		if ( ! wp_verify_nonce( $_POST['jr_ps_button_recaptcha_login_save_nonce'], 'jr_ps_button_recaptcha_login_save' ) ) {
+			wp_die( 'Security violation detected [A014]. Access denied.', 'Security violation', array( 'response' => 403 ) );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$recaptcha_enabled = isset( $_POST['jr_ps_admin_recaptcha_login_guard_enable'] );
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$recaptcha_site_key = isset( $_POST['jr_ps_admin_recaptcha_site_key'] )
+			? trim( sanitize_text_field( wp_unslash( $_POST['jr_ps_admin_recaptcha_site_key'] ) ) )
+			: '';
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$recaptcha_secret_key = isset( $_POST['jr_ps_admin_recaptcha_secret_key'] )
+			? trim( sanitize_text_field( wp_unslash( $_POST['jr_ps_admin_recaptcha_secret_key'] ) ) )
+			: '';
+
+		if ( $recaptcha_enabled && ( $recaptcha_site_key === '' || $recaptcha_secret_key === '' ) ) {
+			$missing = array();
+			if ( $recaptcha_site_key === '' ) {
+				$missing[] = 'Site Key';
+			}
+			if ( $recaptcha_secret_key === '' ) {
+				$missing[] = 'Secret Key';
+			}
+			$missing_label = implode( ' and ', $missing );
+			my_private_site_flag_cmb2_submit_button_error(
+				'jr_ps_button_recaptcha_login_save',
+				'Please provide the ' . $missing_label . ' to enable reCAPTCHA Login Guard.'
+			);
+			$internal_settings = get_option( 'jr_ps_internal_settings' );
+			if ( ! is_array( $internal_settings ) ) {
+				$internal_settings = array();
+			}
+			$internal_settings['recaptcha_login_notice']      = 'Please provide the ' . $missing_label . ' to enable reCAPTCHA Login Guard.';
+			$internal_settings['recaptcha_login_notice_type'] = 'error';
+			update_option( 'jr_ps_internal_settings', $internal_settings );
+
+			return;
+		}
+
+		$settings['recaptcha_login_guard_enabled']    = $recaptcha_enabled;
+		$settings['recaptcha_login_guard_site_key']   = $recaptcha_site_key;
+		$settings['recaptcha_login_guard_secret_key'] = $recaptcha_secret_key;
+
+		$result = update_option( 'jr_ps_settings', $settings );
+		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_recaptcha_login_save' );
 	}
 
 }
@@ -680,6 +920,30 @@ function my_private_site_admin_site_privacy_preload( $data, $object_id, $args, $
 			} else {
 				return false;
 			}
+			break;
+		case 'jr_ps_admin_registration_spam_guard_checks':
+			if ( isset( $settings['registration_spam_guard_checks'] ) && is_array( $settings['registration_spam_guard_checks'] ) ) {
+				return $settings['registration_spam_guard_checks'];
+			}
+			return array();
+			break;
+		case 'jr_ps_admin_recaptcha_login_guard_enable':
+			if ( isset( $settings['recaptcha_login_guard_enabled'] ) ) {
+				return (bool) $settings['recaptcha_login_guard_enabled'];
+			}
+			return false;
+			break;
+		case 'jr_ps_admin_recaptcha_site_key':
+			if ( isset( $settings['recaptcha_login_guard_site_key'] ) ) {
+				return $settings['recaptcha_login_guard_site_key'];
+			}
+			return '';
+			break;
+		case 'jr_ps_admin_recaptcha_secret_key':
+			if ( isset( $settings['recaptcha_login_guard_secret_key'] ) ) {
+				return $settings['recaptcha_login_guard_secret_key'];
+			}
+			return '';
 			break;
 		case 'jr_ps_admin_hide_admin_bar_enable':
 			if ( isset( $settings['hide_admin_bar'] ) ) {

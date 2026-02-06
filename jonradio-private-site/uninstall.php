@@ -12,9 +12,10 @@ if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 	foreach ( $blogs as $blog_obj ) {
 		delete_blog_option( $blog_obj->blog_id, 'jr_ps_settings' );
 		delete_blog_option( $blog_obj->blog_id, 'jr_ps_internal_settings' );
+		delete_blog_option( $blog_obj->blog_id, 'jr_ps_spam_guard_log' );
 	}
 } else {
 	delete_option( 'jr_ps_settings' );
 	delete_option( 'jr_ps_internal_settings' );
+	delete_option( 'jr_ps_spam_guard_log' );
 }
-

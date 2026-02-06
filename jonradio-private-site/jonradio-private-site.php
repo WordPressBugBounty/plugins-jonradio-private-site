@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: My Private Site with AI Defense
+Plugin Name: My Private Site
 Plugin URI: http://zatzlabs.com/plugins/
-Description: Lock down your site with one click. Privacy for family, projects, or teams.
-Version: 4.0.3
+Description: Make your WordPress site private with one click for family, projects, or teams. Protection for content, login, and registration.
+Version: 4.1.0
 Author: David Gewirtz
 Author URI: http://zatzlabs.com/plugins/
 License: GPLv2
@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'JR_PS_PLUGIN_VERSION' ) ) {
-	define( 'JR_PS_PLUGIN_VERSION', '4.0.3' );
+	define( 'JR_PS_PLUGIN_VERSION', '4.1.0' );
 }
 
 if ( ! defined( 'JR_PS_PLUGIN_NAME' ) ) {
@@ -166,6 +166,10 @@ jr_ps_init_settings(
 		'check_role'          => true,
 		'override_omit'       => false,
 		'hide_admin_bar'      => false,
+		'registration_spam_guard_checks'   => array(),
+		'recaptcha_login_guard_enabled'    => false,
+		'recaptcha_login_guard_site_key'   => '',
+		'recaptcha_login_guard_secret_key' => '',
 	),
 	array( 'user_submenu' )
 );
@@ -216,6 +220,350 @@ function my_private_site_shortcode( $atts, $content = null ) {
 
 add_shortcode( 'privacy', 'my_private_site_shortcode' );
 jr_ps_profiler_mark( 'mps-core:shortcode-registered' );
+
+/**
+ * Check whether reCAPTCHA Login Guard is enabled and configured.
+ *
+ * @return array{enabled:bool,ready:bool,site_key:string,secret_key:string}
+ */
+function my_private_site_recaptcha_login_guard_settings() {
+	$settings = get_option( 'jr_ps_settings' );
+	$enabled  = ! empty( $settings['recaptcha_login_guard_enabled'] );
+	$site_key = isset( $settings['recaptcha_login_guard_site_key'] ) ? trim( $settings['recaptcha_login_guard_site_key'] ) : '';
+	$secret   = isset( $settings['recaptcha_login_guard_secret_key'] ) ? trim( $settings['recaptcha_login_guard_secret_key'] ) : '';
+	$ready    = ( $enabled && $site_key !== '' && $secret !== '' );
+
+	return array(
+		'enabled'    => $enabled,
+		'ready'      => $ready,
+		'site_key'   => $site_key,
+		'secret_key' => $secret,
+	);
+}
+
+/**
+ * Render reCAPTCHA widget on the WordPress login form when enabled.
+ */
+function my_private_site_recaptcha_login_guard_render() {
+	$recaptcha = my_private_site_recaptcha_login_guard_settings();
+	if ( ! $recaptcha['ready'] ) {
+		return;
+	}
+
+	echo '<div class="g-recaptcha" data-sitekey="' . esc_attr( $recaptcha['site_key'] ) . '"></div>';
+	echo '<script src="https://www.google.com/recaptcha/api.js" async defer></script>';
+}
+
+/**
+ * Validate reCAPTCHA on login when enabled and configured.
+ *
+ * @param WP_User|WP_Error $user User object from authentication.
+ * @return WP_User|WP_Error
+ */
+function my_private_site_recaptcha_login_guard_validate( $user ) {
+	if ( is_wp_error( $user ) ) {
+		return $user;
+	}
+
+	$recaptcha = my_private_site_recaptcha_login_guard_settings();
+	if ( ! $recaptcha['ready'] ) {
+		return $user;
+	}
+
+	$captcha_token = isset( $_POST['g-recaptcha-response'] )
+		? sanitize_text_field( wp_unslash( $_POST['g-recaptcha-response'] ) )
+		: '';
+
+	if ( '' === $captcha_token ) {
+		return new WP_Error( 'recaptcha', __( 'Please complete the reCAPTCHA.', 'my-private-site' ) );
+	}
+
+	$hash          = md5( $captcha_token );
+	$transient_key = 'jr_ps_recaptcha_checked_' . $hash;
+	if ( get_transient( $transient_key ) ) {
+		return $user;
+	}
+
+	$response = wp_remote_post(
+		'https://www.google.com/recaptcha/api/siteverify',
+		array(
+			'timeout' => 5,
+			'body'    => array(
+				'secret'   => $recaptcha['secret_key'],
+				'response' => $captcha_token,
+				'remoteip' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+			),
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		return new WP_Error( 'recaptcha', __( 'reCAPTCHA verification failed. Please try again.', 'my-private-site' ) );
+	}
+
+	$decoded = json_decode( wp_remote_retrieve_body( $response ), true );
+	if ( ! is_array( $decoded ) ) {
+		return new WP_Error( 'recaptcha', __( 'reCAPTCHA verification failed. Please try again.', 'my-private-site' ) );
+	}
+
+	if ( empty( $decoded['success'] ) ) {
+		return new WP_Error( 'recaptcha', __( 'reCAPTCHA failed. Please try again.', 'my-private-site' ) );
+	}
+
+	set_transient( $transient_key, true, 60 );
+
+	return $user;
+}
+
+add_action( 'login_form', 'my_private_site_recaptcha_login_guard_render' );
+add_filter( 'wp_authenticate_user', 'my_private_site_recaptcha_login_guard_validate', 11, 2 );
+
+/**
+ * Return enabled registration spam guard checks.
+ *
+ * @return array
+ */
+function my_private_site_spam_guard_enabled_checks() {
+	$settings = get_option( 'jr_ps_settings' );
+	if ( ! is_array( $settings ) || empty( $settings['registration_spam_guard_checks'] ) || ! is_array( $settings['registration_spam_guard_checks'] ) ) {
+		return array();
+	}
+
+	return array_values( array_unique( array_filter( $settings['registration_spam_guard_checks'] ) ) );
+}
+
+/**
+ * Check if a specific spam guard check is enabled.
+ *
+ * @param string $check
+ * @return bool
+ */
+function my_private_site_spam_guard_is_enabled( $check ) {
+	return in_array( $check, my_private_site_spam_guard_enabled_checks(), true );
+}
+
+/**
+ * Inject hidden honeypot field on the registration form.
+ */
+function my_private_site_spam_guard_add_honeypot() {
+	if ( ! my_private_site_spam_guard_is_enabled( 'honeypot' ) ) {
+		return;
+	}
+
+	echo '<input type="text" name="confirm_email" value="" style="display:none" autocomplete="off">';
+}
+add_action( 'register_form', 'my_private_site_spam_guard_add_honeypot' );
+
+/**
+ * Validate registration for spam.
+ *
+ * @param WP_Error $errors
+ * @param string   $sanitized_user_login
+ * @param string   $user_email
+ * @return WP_Error
+ */
+function my_private_site_spam_guard_validate_registration( $errors, $sanitized_user_login, $user_email ) {
+	$enabled_checks = my_private_site_spam_guard_enabled_checks();
+	if ( empty( $enabled_checks ) ) {
+		return $errors;
+	}
+
+	$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$reason = '';
+
+	if ( my_private_site_spam_guard_is_enabled( 'honeypot' ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$honeypot_value = isset( $_POST['confirm_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['confirm_email'] ) ) ) : '';
+		if ( '' !== $honeypot_value ) {
+			$reason = 'Honeypot field filled';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'gibberish_username' ) ) {
+		if ( my_private_site_spam_guard_is_gibberish_username( $sanitized_user_login ) ) {
+			$reason = 'Excessively long gibberish username';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'excessive_dots' ) ) {
+		if ( my_private_site_spam_guard_has_excessive_dots( $user_email ) ) {
+			$reason = 'Excessive dots in email address';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'missing_mx' ) ) {
+		if ( my_private_site_spam_guard_missing_mx_record( $user_email ) ) {
+			$reason = 'Missing MX records';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'stop_forum_spam' ) ) {
+		if ( my_private_site_spam_guard_check_stop_forum_spam( $ip, $user_email ) ) {
+			$reason = 'StopForumSpam match';
+		}
+	}
+
+	if ( '' !== $reason ) {
+		$errors->add(
+			'jr_ps_spam_guard_blocked',
+			__( '<strong>Error</strong>: Registration blocked as suspected spam.', 'my-private-site' )
+		);
+		my_private_site_spam_guard_log( $sanitized_user_login, $user_email, $ip, $reason );
+	}
+
+	return $errors;
+}
+add_filter( 'registration_errors', 'my_private_site_spam_guard_validate_registration', 10, 3 );
+
+/**
+ * Determine if a username appears to be gibberish.
+ *
+ * @param string $username
+ * @return bool
+ */
+function my_private_site_spam_guard_is_gibberish_username( $username ) {
+	$len = strlen( $username );
+	if ( $len < 16 ) {
+		return false;
+	}
+
+	$transitions = 0;
+	for ( $i = 1; $i < $len; $i++ ) {
+		$prev_upper = ctype_upper( $username[ $i - 1 ] );
+		$curr_upper = ctype_upper( $username[ $i ] );
+		$prev_alpha = ctype_alpha( $username[ $i - 1 ] );
+		$curr_alpha = ctype_alpha( $username[ $i ] );
+
+		if ( $prev_alpha && $curr_alpha && $prev_upper !== $curr_upper ) {
+			$transitions++;
+		}
+	}
+
+	$transition_ratio = $transitions / ( $len - 1 );
+	if ( $transition_ratio < 0.35 ) {
+		return false;
+	}
+
+	$vowels      = preg_match_all( '/[aeiouAEIOU]/', $username );
+	$vowel_ratio = $vowels / $len;
+
+	if ( $transition_ratio > 0.4 && $vowel_ratio < 0.25 ) {
+		return true;
+	}
+
+	if ( $len >= 20 && $transition_ratio > 0.45 ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Check if email has excessive dots in the local part.
+ *
+ * @param string $email
+ * @return bool
+ */
+function my_private_site_spam_guard_has_excessive_dots( $email ) {
+	$at_pos = strrpos( $email, '@' );
+	if ( false === $at_pos ) {
+		return false;
+	}
+
+	$local_part = substr( $email, 0, $at_pos );
+	$dot_count  = substr_count( $local_part, '.' );
+
+	return ( $dot_count >= 6 );
+}
+
+/**
+ * Determine if the email domain is missing MX records.
+ *
+ * @param string $email
+ * @return bool
+ */
+function my_private_site_spam_guard_missing_mx_record( $email ) {
+	$domain = substr( strrchr( $email, '@' ), 1 );
+	if ( ! $domain ) {
+		return true;
+	}
+	if ( ! function_exists( 'checkdnsrr' ) ) {
+		return false;
+	}
+
+	return ! checkdnsrr( $domain, 'MX' );
+}
+
+/**
+ * Query StopForumSpam API.
+ *
+ * @param string $ip
+ * @param string $email
+ * @return bool
+ */
+function my_private_site_spam_guard_check_stop_forum_spam( $ip, $email ) {
+	$cache_key = 'jr_ps_sfs_' . md5( $ip . $email );
+	$cached    = get_transient( $cache_key );
+	if ( false !== $cached ) {
+		return (bool) $cached;
+	}
+
+	$url  = add_query_arg(
+		array(
+			'json'  => '',
+			'ip'    => rawurlencode( $ip ),
+			'email' => rawurlencode( $email ),
+		),
+		'https://api.stopforumspam.org/api'
+	);
+	$resp = wp_remote_get(
+		$url,
+		array(
+			'timeout' => 5,
+		)
+	);
+
+	$is_spam = false;
+	if ( ! is_wp_error( $resp ) && 200 === wp_remote_retrieve_response_code( $resp ) ) {
+		$body = json_decode( wp_remote_retrieve_body( $resp ), true );
+		if ( isset( $body['ip']['confidence'] ) && $body['ip']['confidence'] >= 50 ) {
+			$is_spam = true;
+		} elseif ( isset( $body['email']['confidence'] ) && $body['email']['confidence'] >= 50 ) {
+			$is_spam = true;
+		}
+	}
+
+	set_transient( $cache_key, $is_spam ? 1 : 0, DAY_IN_SECONDS );
+
+	return $is_spam;
+}
+
+/**
+ * Log blocked registration attempts.
+ *
+ * @param string $login
+ * @param string $email
+ * @param string $ip
+ * @param string $reason
+ */
+function my_private_site_spam_guard_log( $login, $email, $ip, $reason ) {
+	$log = get_option( 'jr_ps_spam_guard_log' );
+	if ( ! is_array( $log ) ) {
+		$log = array();
+	}
+
+	$entry = array(
+		'time'   => current_time( 'mysql' ),
+		'login'  => (string) $login,
+		'email'  => (string) $email,
+		'ip'     => (string) $ip,
+		'reason' => (string) $reason,
+	);
+
+	array_unshift( $log, $entry );
+	$log = array_slice( $log, 0, 20 );
+
+	update_option( 'jr_ps_spam_guard_log', $log );
+}
 
 if ( is_admin() ) {
 	jr_ps_profiler_mark( 'mps-admin:bootstrap-start' );

@@ -622,7 +622,7 @@ function my_private_site_get_robots_retest_button_html( $context = 'general' ) {
                        . '.jrps-robots-retest-wrap{margin-top:8px;padding:10px;background:#fff3f3;border:1px solid #f7d7d7;border-radius:4px;display:inline-block;}'
                        . '.jrps-robots-status{margin:0 0 6px;font-size:13px;color:#5a5a5a;}'
                        . '.jrps-robots-retest-form{margin:0;display:inline-block;}'
-                       . '.jrps-robots-retest-button{background:#ffe0e0;color:#a40000;border:1px solid #a40000;padding:6px 16px;border-radius:3px;font-weight:600;cursor:pointer;}'
+                       . '.jrps-robots-retest-button{background:#ffe0e0;color:#a40000;border:1px solid #a40000;padding:6px 16px;border-radius:3px;font-weight:600;cursor:pointer;display:inline-block;text-decoration:none;}'
                        . '.jrps-robots-retest-button:hover{background:#ffd0d0;color:#7a0000;}'
                        . '.jrps-robots-retest-button:focus{outline:2px solid #a40000;outline-offset:1px;}'
                        . '</style>';
@@ -635,14 +635,17 @@ function my_private_site_get_robots_retest_button_html( $context = 'general' ) {
     }
 
     $nonce = wp_create_nonce( 'my_private_site_retest_robots' );
-    $form  = '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="jrps-robots-retest-form">'
-           . '<input type="hidden" name="action" value="my_private_site_retest_robots" />'
-           . '<input type="hidden" name="context" value="' . esc_attr( $context ) . '" />'
-           . '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '" />'
-           . '<button type="submit" class="jrps-robots-retest-button">' . esc_html__( "I've fixed it. Please Retest", 'my-private-site' ) . '</button>'
-           . '</form>';
+    $url   = add_query_arg(
+        array(
+            'action'  => 'my_private_site_retest_robots',
+            'context' => $context,
+            '_wpnonce'=> $nonce,
+        ),
+        admin_url( 'admin-post.php' )
+    );
+    $link  = '<a class="jrps-robots-retest-button" href="' . esc_url( $url ) . '">' . esc_html__( "I've fixed it. Please Retest", 'my-private-site' ) . '</a>';
 
-    return $style_block . '<div class="jrps-robots-retest-wrap">' . $status_html . $form . '</div>';
+    return $style_block . '<div class="jrps-robots-retest-wrap">' . $status_html . '<div class="jrps-robots-retest-form">' . $link . '</div></div>';
 }
 
 /**

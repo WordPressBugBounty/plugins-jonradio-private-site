@@ -1,47 +1,47 @@
-=== My Private Site with AI Defense ===
+=== My Private Site ===
 Contributors: dgewirtz
 Donate link: http://zatzlabs.com/lab-notes/
-Tags: login, visibility, private, security, bots
+Tags: private site, privacy, login, registration, security
 Requires at least: 4.4
 Requires PHP: 5.4
-Tested up to: 6.8
-Stable tag: 4.0.3
+Tested up to: 6.9
+Stable tag: 4.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Lock down your site with one click. Privacy for family, projects, or teams.
+Make your WordPress site private with one click for family, projects, or teams. Protection for content, login, and registration.
 
 == Description ==
 
-**My Private Site** is the easiest way to make your entire WordPress site private. With one setting, you can restrict all pages and posts so they are visible only to logged-in users. Visitors who are not signed in are automatically redirected to the WordPress login screen.  
+**My Private Site** makes your WordPress site private so only logged-in users can see your content. With one click, you can restrict access to all posts and pages, automatically redirect visitors to the login screen, and keep your site visible only to people you trust.
 
-Unlike full membership plugins, My Private Site does not require the overhead of subscriptions, payments, or profile management. Instead, it focuses on strong, lightweight privacy, perfect for projects where you just need to keep your site limited to a trusted audience.
+Unlike full membership or subscription systems, My Private Site focuses on strong privacy without unnecessary complexity. It is ideal for family sites, schools, clubs, client previews, or development environments where you want to share content with a trusted audience without managing payments, profiles, or custom roles.
 
 ### Ideal Use Cases
 - **Family sites and school projects**: Share personal updates, photos, or assignments only with family members, classmates, or teachers you choose.
 - **Development and staging sites**: Safely show work-in-progress to clients or teammates without exposing unfinished content or letting it be indexed by search engines.
 - **Clubs, groups, and internal blogs**: Create a private online space for members or staff without the overhead of a complex membership system.
 
+### Digital Fortress protection
+My Private Site helps protect the “front door” of your private site with built-in safeguards for login and user registration, including registration spam protection and optional reCAPTCHA support. It also includes AI Crawler Defense to discourage automated collection of your site’s content.
+
 ### Key Features
-* One-click option to make your entire WordPress site private.
-* Optional setting to keep the homepage public while locking down the rest of the site.
-* Automatic login prompts whenever non-logged-in users try to access content.
-* Flexible landing page control—send users back to the page they requested, to your homepage, dashboard, or a custom URL after login.
-* Hide the WordPress admin bar on the front end for a cleaner look.
-* REST API Guardian: block REST API access for logged-out users.
-* Works with custom login pages, Multisite, BuddyPress, and Theme My Login.
+* Make your entire WordPress site private with a single setting  
+* Redirect logged-out visitors automatically to the login page  
+* Choose where users land after login (requested page, home, dashboard, or custom URL)  
+* Support user self-registration on private sites when enabled  
+* Protect registration with built-in spam controls and optional reCAPTCHA  
+* Optionally block unauthenticated access to the WordPress REST API  
+* Simple, no-code setup using standard WordPress settings 
 * Privacy shortcode lets you selectively show or hide content within a page or post.
 
-### Built-in AI Defense
-The internet is rapidly changing, with AI crawlers and bots harvesting content without consent. My Private Site helps you defend your work with integrated **AI Defense** features:
+### Built-in AI Crawler Defense
+The internet is rapidly changing, with AI crawlers and bots harvesting content without consent. My Private Site helps you defend your work with integrated **AI Crawler Defense** features:
 * **NoAI and NoImageAI tags**: Automatically add meta tags and headers that signal compliant AI systems not to use your text or images for training.
 * **Block GPTBot**: Add a robots.txt rule to prevent OpenAI’s crawler from accessing your site.
 * **Really Simple Licensing (RSL)**: Publish a machine-readable license that explicitly prohibits AI training on your content.
 
 These protections are included free in the core plugin, easy to enable with a checkbox, and designed to safeguard your site without affecting normal visitors or search engines. You can use them even if you're not using any other site privacy features.
-
-### Privacy Made Simple for Teams, Projects, and Families
-In short, My Private Site turns your WordPress installation into a secure, invite-only space with just a few clicks. Whether you’re running a private blog, staging a project, or safeguarding your family site, it provides peace of mind, modern AI defenses, and effortless setup—all while staying lightweight and easy to manage.
 
 ### Watch the Video Overview and Demo
 
@@ -50,18 +50,18 @@ https://youtu.be/jry3DHD-OB8
 ### Premium Add-ons
 Premium add-ons turn My Private Site into a comprehensive privacy suite, giving you enterprise-style layered security defenses, smarter oversight, and flexible access, without the complexity or cost.
 
-Advanced AI Defense, Visitor Intelligence, and Block IP provide protections regardless of whether you're using any site privacy features.
+Advanced AI Crawler Defense, Visitor Intelligence, and Block IP provide protections regardless of whether you're using any site privacy features.
 
 https://youtu.be/B6s8O9VZLc0
 
-* [Public Pages 2.0](https://zatzlabs.com/project/my-private-site-public-pages/): Allows site operators to designate certain specific pages, or pages with specified prefix, to be available to the public without login. Now also allows public site, private pages. [Watch the video](https://youtu.be/u7BuYtzS_pI)
-* [Advanced AI Defense](https://zatzlabs.com/project/my-private-site-advanced-ai-defense/): Protect WordPress content from AI crawlers using licensing, opt-out tags, selective bot blocking, and firewall defenses to control and safeguard your data. [Watch the video](https://youtu.be/Eb4qQDafaRk)
-* [Visitor Intelligence](https://zatzlabs.com/project/my-private-site-visitor-intelligence/): Track logins, logouts, failed attempts, and bot activity with a unified log, anomaly detection, and export tools for stronger site oversight and security. [Watch the video](https://youtu.be/TTK8bGVD8pM)
-* [Guest Access](https://zatzlabs.com/project/my-private-site-guest-access/): Grant temporary, secure access to private WordPress content using unique shareable links with expiration, one-time use, and full admin-controlled invite management. [Watch the video](https://youtu.be/j1vYV8lhqcc)
-* [Block IP](https://zatzlabs.com/project/my-private-site-block-ip/): Block unwanted visitors by IP address or range with full IPv4/IPv6 support, configurable scope, and fast enforcement to secure your WordPress site. [Watch the video](https://youtu.be/vsxLqYXWITs)
-* [Tags & Categories](https://zatzlabs.com/project/my-private-site-tags-and-categories/): Allows you to make pages public or (with Public Pages 2.0) private based on tags and categories. [Watch the video](https://youtu.be/dEv7lXxU5lo)
-* [Selective Content](https://zatzlabs.com/project/my-private-site-selective-content/): Allows hiding, showing, and obscurifying page content through the use of shortcodes. Can also selectively hide widgets and sidebars. [Watch the video](https://youtu.be/exgJrJJSCNY)
-* [Digital Fortress Bundle](https://zatzlabs.com/project/my-private-site-pricing/): All add-ons are available in bundle form.  [Watch the video](https://youtu.be/B6s8O9VZLc0)
+* [**Public Pages 2.0**](https://zatzlabs.com/project/my-private-site-public-pages/): Allows site operators to designate certain specific pages, or pages with specified prefix, to be available to the public without login. Now also allows public site, private pages. [Watch the video](https://youtu.be/u7BuYtzS_pI)
+* [**Advanced AI Crawler Defense**](https://zatzlabs.com/project/my-private-site-advanced-ai-defense/): Protect WordPress content from AI crawlers using licensing, opt-out tags, selective bot blocking, and firewall defenses to control and safeguard your data. [Watch the video](https://youtu.be/Eb4qQDafaRk)
+* [**Visitor Intelligence**](https://zatzlabs.com/project/my-private-site-visitor-intelligence/): Track logins, logouts, failed attempts, and bot activity with a unified log, anomaly detection, and export tools for stronger site oversight and security. [Watch the video](https://youtu.be/TTK8bGVD8pM)
+* [**Guest Access**](https://zatzlabs.com/project/my-private-site-guest-access/): Grant temporary, secure access to private WordPress content using unique shareable links with expiration, one-time use, and full admin-controlled invite management. [Watch the video](https://youtu.be/j1vYV8lhqcc)
+* [**Block IP**](https://zatzlabs.com/project/my-private-site-block-ip/): Block unwanted visitors by IP address or range with full IPv4/IPv6 support, configurable scope, and fast enforcement to secure your WordPress site. [Watch the video](https://youtu.be/vsxLqYXWITs)
+* [**Tags & Categories**](https://zatzlabs.com/project/my-private-site-tags-and-categories/): Allows you to make pages public or (with Public Pages 2.0) private based on tags and categories. [Watch the video](https://youtu.be/dEv7lXxU5lo)
+* [**Selective Content**](https://zatzlabs.com/project/my-private-site-selective-content/): Allows hiding, showing, and obscurifying page content through the use of shortcodes. Can also selectively hide widgets and sidebars. [Watch the video](https://youtu.be/exgJrJJSCNY)
+* [**Digital Fortress Bundle**](https://zatzlabs.com/project/my-private-site-pricing/): All add-ons are available in bundle form.  [Watch the video](https://youtu.be/B6s8O9VZLc0)
 
 ## Limits
 
@@ -100,9 +100,9 @@ Whenever you change your WordPress Permalinks (Settings:Permalinks in admin pane
 
 == Screenshots ==
 
-1.AI Defense settings active
+1.AI Crawler Defense settings active
 2.Site privacy mode enabled
-3.REST API privacy protection
+3.REST API, registration spam, reCAPTCHA protection
 4.Plugin welcome and overview
 5.Landing page redirect options
 6.Public homepage visibility settings
@@ -111,8 +111,15 @@ Whenever you change your WordPress Permalinks (Settings:Permalinks in admin pane
 
 == Changelog ==
 
+= 4.1.0 =
+* Added Registration Spam Guard and reCAPTCHA login protection to the free plugin.
+
+= 4.0.4 =
+* Fixed Site Privacy save actions being intercepted by the robots.txt retest control.
+* Improved AI Crawler Defense retest notice when a physical robots.txt file is present.
+
 = 4.0.3 =
-* Added AI Defense subsystem
+* Added AI Crawler Defense subsystem
 * Added built-in video tutorials for all sections
 * Added Manage Settings subtab to Advanced to save, restore, and reset settings
 * Substantially optimized plugin startup operations

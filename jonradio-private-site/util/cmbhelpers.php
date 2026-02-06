@@ -374,6 +374,11 @@ function my_private_site_display_cmb2_submit_button_callback( $field_args, $fiel
     }
     $button_list_array['__defaults'][ $button_id_success ] = $button_success_msg;
     $button_list_array['__defaults'][ $button_id_error ]   = $button_error_msg;
+    if ( $error_msg != '' ) {
+        unset( $button_list_array[ $button_id_error ] );
+    } elseif ( $button_msg != '' ) {
+        unset( $button_list_array[ $button_id_success ] );
+    }
     update_option( $button_list_option_name, $button_list_array );
 
 	// create nonce code based on the ID of the button
@@ -508,9 +513,20 @@ function my_private_site_get_cmb2_submit_button_message( $button_id, $what_to_ge
 }
 
 function my_private_site_clear_cmb2_submit_button_messages( $page_stub ) {
+	$button_list_option_name = 'jr_ps_' . $page_stub . '_button_list';
+	$button_list_option      = get_option( $button_list_option_name );
+	if ( $button_list_option != false ) {
+		$button_list_array = maybe_unserialize( $button_list_option );
+		$active_messages   = $button_list_array;
+		if ( isset( $active_messages['__defaults'] ) ) {
+			unset( $active_messages['__defaults'] );
+		}
+		if ( ! empty( $active_messages ) ) {
+			return;
+		}
+	}
 	if ( ! my_private_site_is_referred_by_page( $page_stub ) ) {
 		// clear previous error messages if coming from another page
-		$button_list_option_name = 'jr_ps_' . $page_stub . '_button_list';
 		$button_list_array       = array();
 		update_option( $button_list_option_name, $button_list_array );
 	}

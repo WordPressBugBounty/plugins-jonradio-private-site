@@ -46,6 +46,7 @@ function my_private_site_admin_advanced_menu() {
     // Show Backups tab before System Log
     my_private_site_admin_backups_section_data( $addon_options );
     my_private_site_admin_logs_section_data( $addon_options );
+    my_private_site_admin_spam_log_section_data( $addon_options );
 
 	do_action( 'my_private_site_tab_advanced_after', $addon_options );
 }
@@ -262,6 +263,74 @@ function my_private_site_admin_logs_section_data( $section_options ) {
 	);
 
 	$section_options = apply_filters( 'my_private_site_tab_logs_section_data_options', $section_options );
+}
+
+// SPAM LOG - SECTION - DATA ////
+function my_private_site_admin_spam_log_section_data( $section_options ) {
+	$section_options->add_field(
+		array(
+			'name'            => 'Spam Log',
+			'id'              => 'my_private_site_spam_log_title',
+			'type'            => 'title',
+			'secondary_cb'    => 'my_private_site_tab_advanced_page',
+			'secondary_tab'   => 'spam_log',
+			'secondary_title' => 'Spam Log',
+			'after_field'     => '<i>Review blocked registration attempts and their reasons.</i>',
+		)
+	);
+
+	$log_entries   = get_option( 'jr_ps_spam_guard_log' );
+	$spam_log_empty = ( ! is_array( $log_entries ) || empty( $log_entries ) );
+	if ( $spam_log_empty ) {
+		$log_html = '<p class="jrps-spam-log-empty">The spam log is empty.</p>';
+	} else {
+		$rows = '';
+		foreach ( $log_entries as $entry ) {
+			$rows .= '<tr>'
+				. '<td>' . esc_html( isset( $entry['time'] ) ? $entry['time'] : '' ) . '</td>'
+				. '<td>' . esc_html( isset( $entry['login'] ) ? $entry['login'] : '' ) . '</td>'
+				. '<td>' . esc_html( isset( $entry['email'] ) ? $entry['email'] : '' ) . '</td>'
+				. '<td>' . esc_html( isset( $entry['ip'] ) ? $entry['ip'] : '' ) . '</td>'
+				. '<td>' . esc_html( isset( $entry['reason'] ) ? $entry['reason'] : '' ) . '</td>'
+				. '</tr>';
+		}
+		$log_html = '<table class="widefat striped jrps-spam-log-table">'
+			. '<thead><tr>'
+			. '<th>Date</th>'
+			. '<th>Username</th>'
+			. '<th>Email</th>'
+			. '<th>IP Address</th>'
+			. '<th>Reason</th>'
+			. '</tr></thead>'
+			. '<tbody>' . $rows . '</tbody>'
+			. '</table>';
+	}
+
+	my_private_site_cmb2_add_raw_html(
+		$section_options,
+		$log_html,
+		'my_private_site_spam_log_table',
+		array(
+			'secondary_cb'  => 'my_private_site_tab_advanced_page',
+			'secondary_tab' => 'spam_log',
+			'classes'       => 'jrps-full-row',
+		)
+	);
+
+	my_private_site_display_cmb2_submit_button(
+		$section_options,
+		array(
+			'button_id'          => 'jr_ps_button_spam_log_clear',
+			'button_text'        => 'Clear Spam Log',
+			'button_success_msg' => 'Spam log cleared.',
+			'button_error_msg'   => '',
+			'attributes'         => $spam_log_empty ? array( 'disabled' => 'disabled' ) : array(),
+			'field_args'         => array(
+				'secondary_cb'  => 'my_private_site_tab_advanced_page',
+				'secondary_tab' => 'spam_log',
+			),
+		)
+	);
 }
 
 // BACKUPS - SECTION - DATA ////
@@ -487,6 +556,21 @@ function my_private_site_tab_advanced_process_buttons() {
 		$redirect = wp_get_referer();
 		if ( ! $redirect ) {
 			$redirect = admin_url( 'admin.php?page=my_private_site_tab_advanced&subtab=system_log' );
+		}
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	if ( isset( $_POST['jr_ps_button_spam_log_clear'], $_POST['jr_ps_button_spam_log_clear_nonce'] ) ) {
+		if ( ! wp_verify_nonce( $_POST['jr_ps_button_spam_log_clear_nonce'], 'jr_ps_button_spam_log_clear' ) ) {
+			wp_die( 'Security violation detected [A015]. Access denied.', 'Security violation', array( 'response' => 403 ) );
+		}
+		delete_option( 'jr_ps_spam_guard_log' );
+		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_spam_log_clear' );
+
+		$redirect = wp_get_referer();
+		if ( ! $redirect ) {
+			$redirect = admin_url( 'admin.php?page=my_private_site_tab_advanced&subtab=spam_log' );
 		}
 		wp_safe_redirect( $redirect );
 		exit;
