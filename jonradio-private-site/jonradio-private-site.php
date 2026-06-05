@@ -3,7 +3,7 @@
 Plugin Name: My Private Site
 Plugin URI: http://zatzlabs.com/plugins/
 Description: Make your WordPress site private with one click for family, projects, or teams. Protection for content, login, and registration.
-Version: 4.1.0
+Version: 4.1.1
 Author: David Gewirtz
 Author URI: http://zatzlabs.com/plugins/
 License: GPLv2
@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'JR_PS_PLUGIN_VERSION' ) ) {
-	define( 'JR_PS_PLUGIN_VERSION', '4.1.0' );
+	define( 'JR_PS_PLUGIN_VERSION', '4.1.1' );
 }
 
 if ( ! defined( 'JR_PS_PLUGIN_NAME' ) ) {
@@ -367,7 +367,13 @@ function my_private_site_spam_guard_validate_registration( $errors, $sanitized_u
 		return $errors;
 	}
 
-	$ip     = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$ip                   = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$submitted_user_login = $sanitized_user_login;
+	// phpcs:ignore WordPress.Security.NonceVerification
+	if ( isset( $_POST['user_login'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$submitted_user_login = trim( sanitize_text_field( wp_unslash( $_POST['user_login'] ) ) );
+	}
 	$reason = '';
 
 	if ( my_private_site_spam_guard_is_enabled( 'honeypot' ) ) {
@@ -384,6 +390,18 @@ function my_private_site_spam_guard_validate_registration( $errors, $sanitized_u
 		}
 	}
 
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'url_like_username' ) ) {
+		if ( my_private_site_spam_guard_is_url_like_username( $sanitized_user_login ) || my_private_site_spam_guard_is_url_like_username( $submitted_user_login ) ) {
+			$reason = 'URL-like username';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'spam_phrase_username' ) ) {
+		if ( my_private_site_spam_guard_is_spam_phrase_username( $sanitized_user_login ) || my_private_site_spam_guard_is_spam_phrase_username( $submitted_user_login ) ) {
+			$reason = 'Spam phrase username';
+		}
+	}
+
 	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'excessive_dots' ) ) {
 		if ( my_private_site_spam_guard_has_excessive_dots( $user_email ) ) {
 			$reason = 'Excessive dots in email address';
@@ -393,6 +411,12 @@ function my_private_site_spam_guard_validate_registration( $errors, $sanitized_u
 	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'missing_mx' ) ) {
 		if ( my_private_site_spam_guard_missing_mx_record( $user_email ) ) {
 			$reason = 'Missing MX records';
+		}
+	}
+
+	if ( '' === $reason && my_private_site_spam_guard_is_enabled( 'disposable_email_domain' ) ) {
+		if ( my_private_site_spam_guard_is_disposable_email_domain( $user_email ) ) {
+			$reason = 'Disposable email domain';
 		}
 	}
 
@@ -458,6 +482,74 @@ function my_private_site_spam_guard_is_gibberish_username( $username ) {
 }
 
 /**
+ * Determine if a username looks like a URL or domain name.
+ *
+ * @param string $username
+ * @return bool
+ */
+function my_private_site_spam_guard_is_url_like_username( $username ) {
+	$username = strtolower( trim( (string) $username ) );
+	if ( '' === $username ) {
+		return false;
+	}
+
+	if ( preg_match( '#^[a-z][a-z0-9+.-]*://#', $username ) ) {
+		return true;
+	}
+
+	$username = preg_replace( '#^www\.#', '', $username );
+	if ( ! is_string( $username ) || false === strpos( $username, '.' ) ) {
+		return false;
+	}
+
+	if ( ! preg_match( '/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/', $username ) ) {
+		return false;
+	}
+
+	$labels = explode( '.', $username );
+	if ( count( $labels ) < 3 ) {
+		return false;
+	}
+
+	foreach ( $labels as $label ) {
+		if ( '' === $label || strlen( $label ) > 63 || ! preg_match( '/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/', $label ) ) {
+			return false;
+		}
+	}
+
+	$tld = end( $labels );
+	if ( ! is_string( $tld ) || ! preg_match( '/^[a-z]{2,24}$/', $tld ) ) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Determine if a username contains common crypto scam registration phrases.
+ *
+ * @param string $username
+ * @return bool
+ */
+function my_private_site_spam_guard_is_spam_phrase_username( $username ) {
+	$username = strtolower( trim( (string) $username ) );
+	if ( '' === $username ) {
+		return false;
+	}
+
+	$normalized = preg_replace( '/[^a-z0-9]+/', ' ', $username );
+	if ( ! is_string( $normalized ) ) {
+		return false;
+	}
+	$normalized = trim( preg_replace( '/\s+/', ' ', $normalized ) );
+
+	$has_scam_phrase = preg_match( '/\b(?:action required|check balance|withdraw funds|btc transfer|your balance)\b/', $normalized );
+	$has_crypto_term = preg_match( '/\b(?:btc|crypto|usdt|usdc|wallet)\b/', $normalized );
+
+	return (bool) ( $has_scam_phrase && $has_crypto_term );
+}
+
+/**
  * Check if email has excessive dots in the local part.
  *
  * @param string $email
@@ -491,6 +583,67 @@ function my_private_site_spam_guard_missing_mx_record( $email ) {
 	}
 
 	return ! checkdnsrr( $domain, 'MX' );
+}
+
+/**
+ * Determine if the email domain is a known disposable email service.
+ *
+ * @param string $email
+ * @return bool
+ */
+function my_private_site_spam_guard_is_disposable_email_domain( $email ) {
+	$at_pos = strrpos( $email, '@' );
+	if ( false === $at_pos ) {
+		return false;
+	}
+
+	$domain = strtolower( trim( (string) substr( $email, $at_pos + 1 ) ) );
+	if ( '' === $domain ) {
+		return false;
+	}
+
+	$blocked_domains = array(
+		'10minutemail.com',
+		'dispostable.com',
+		'emailondeck.com',
+		'fakemail.net',
+		'getnada.com',
+		'guerrillamail.com',
+		'guerrillamail.net',
+		'maildrop.cc',
+		'mailinator.com',
+		'mailnesia.com',
+		'moakt.com',
+		'mytemp.email',
+		'sharklasers.com',
+		'temp-mail.org',
+		'tempail.com',
+		'tempmail.com',
+		'throwawaymail.com',
+		'trashmail.com',
+		'yopmail.com',
+	);
+
+	/**
+	 * Filter disposable email domains blocked by Registration Spam Guard.
+	 *
+	 * @param array $blocked_domains
+	 */
+	$blocked_domains = apply_filters( 'my_private_site_spam_guard_disposable_email_domains', $blocked_domains );
+	if ( ! is_array( $blocked_domains ) ) {
+		return false;
+	}
+
+	foreach ( array_map( 'strtolower', array_map( 'trim', $blocked_domains ) ) as $blocked_domain ) {
+		if ( '' === $blocked_domain ) {
+			continue;
+		}
+		if ( $domain === $blocked_domain || substr( $domain, -1 * ( strlen( $blocked_domain ) + 1 ) ) === '.' . $blocked_domain ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**

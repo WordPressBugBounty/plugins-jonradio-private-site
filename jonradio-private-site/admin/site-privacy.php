@@ -357,11 +357,14 @@ function my_private_site_admin_rest_api_section_data( $section_options ) {
 			'type'              => 'multicheck',
 			'select_all_button' => false,
 			'options'           => array(
-				'honeypot'            => 'Enable honeypot field on registration form',
-				'gibberish_username'  => 'Block registrations with excessively long gibberish usernames',
-				'excessive_dots'      => 'Block registrations with excessive dots in email address',
-				'missing_mx'          => 'Block registrations when email domain lacks MX records',
-				'stop_forum_spam'     => 'Check registrants against StopForumSpam database',
+				'honeypot'                => 'Enable honeypot field on registration form',
+				'gibberish_username'      => 'Block registrations with excessively long gibberish usernames',
+				'url_like_username'       => 'Block registrations with URL-like usernames',
+				'spam_phrase_username'    => 'Block registrations with crypto scam phrase usernames',
+				'excessive_dots'          => 'Block registrations with excessive dots in email address',
+				'missing_mx'              => 'Block registrations when email domain lacks MX records',
+				'disposable_email_domain' => 'Block registrations from disposable email domains',
+				'stop_forum_spam'         => 'Check registrants against StopForumSpam database',
 			),
 		)
 	);
@@ -817,11 +820,14 @@ function my_private_site_tab_site_privacy_process_buttons() {
 		}
 
 		$allowed_checks = array(
-			'honeypot'           => true,
-			'gibberish_username' => true,
-			'excessive_dots'     => true,
-			'missing_mx'         => true,
-			'stop_forum_spam'    => true,
+			'honeypot'                => true,
+			'gibberish_username'      => true,
+			'url_like_username'       => true,
+			'spam_phrase_username'    => true,
+			'excessive_dots'          => true,
+			'missing_mx'              => true,
+			'disposable_email_domain' => true,
+			'stop_forum_spam'         => true,
 		);
 		$spam_guard_checks = array();
 		// phpcs:ignore WordPress.Security.NonceVerification
