@@ -47,11 +47,65 @@ function my_private_site_admin_advanced_menu() {
     my_private_site_admin_backups_section_data( $addon_options );
     my_private_site_admin_logs_section_data( $addon_options );
     my_private_site_admin_spam_log_section_data( $addon_options );
+    my_private_site_admin_spam_account_cleanup_section_data( $addon_options );
 
 	do_action( 'my_private_site_tab_advanced_after', $addon_options );
 }
 
 add_action( 'cmb2_admin_init', 'my_private_site_admin_advanced_menu' );
+
+/**
+ * Spam Account Cleanup launcher section.
+ *
+ * @param CMB2 $section_options CMB2 options box.
+ * @return void
+ */
+function my_private_site_admin_spam_account_cleanup_section_data( $section_options ) {
+	$section_options->add_field(
+		array(
+			'name'            => __( 'Spam Account Cleanup', 'my-private-site' ),
+			'id'              => 'jr_ps_admin_spam_account_cleanup_title',
+			'type'            => 'title',
+			'secondary_cb'    => 'my_private_site_tab_advanced_page',
+			'secondary_tab'   => 'spam_account_cleanup',
+			'secondary_title' => __( 'Spam Account Cleanup', 'my-private-site' ),
+			'after_field'     => '<i>' . esc_html__( 'Preview and safely remove spam subscriber accounts in resumable batches.', 'my-private-site' ) . '</i>',
+		)
+	);
+
+	if ( is_multisite() ) {
+		my_private_site_cmb2_add_raw_html(
+			$section_options,
+			'<p>' . esc_html__( 'Spam Account Cleanup is not available on multisite installations in this version.', 'my-private-site' ) . '</p>',
+			'jr_ps_spam_account_cleanup_multisite_notice',
+			array(
+				'secondary_cb'  => 'my_private_site_tab_advanced_page',
+				'secondary_tab' => 'spam_account_cleanup',
+				'classes'       => 'jrps-full-row',
+			)
+		);
+		return;
+	}
+
+	$url = wp_nonce_url(
+		admin_url( 'admin.php?page=' . JR_PS_CLEANUP_PAGE_SLUG ),
+		'jr_ps_cleanup_launch'
+	);
+
+	$html  = '<p>' . esc_html__( 'This staged wizard requires a backup acknowledgment, dry-run preview, CSV export, and typed confirmation before deleting any account. Protected users are never deleted.', 'my-private-site' ) . '</p>';
+	$html .= '<p><a class="button button-primary" href="' . esc_url( $url ) . '">' . esc_html__( 'Launch Cleanup Tool', 'my-private-site' ) . '</a></p>';
+
+	my_private_site_cmb2_add_raw_html(
+		$section_options,
+		$html,
+		'jr_ps_spam_account_cleanup_launcher',
+		array(
+			'secondary_cb'  => 'my_private_site_tab_advanced_page',
+			'secondary_tab' => 'spam_account_cleanup',
+			'classes'       => 'jrps-full-row',
+		)
+	);
+}
 
 // advanced - SECTION - DATA ////
 function my_private_site_admin_advanced_section_data( $section_options ) {

@@ -44,6 +44,7 @@ function my_private_site_admin_site_privacy_menu() {
 	$addon_options = new_cmb2_box( $args );
 
 	my_private_site_admin_site_privacy_section_data( $addon_options );
+	my_private_site_admin_spam_guard_section_data( $addon_options );
 	my_private_site_admin_rest_api_section_data( $addon_options );
 	my_private_site_admin_ai_intelligence_section_data( $addon_options );
 	my_private_site_admin_visitor_intelligence_section_data( $addon_options );
@@ -274,6 +275,187 @@ function my_private_site_admin_site_privacy_section_data( $section_options ) {
 	$section_options = apply_filters( 'my_private_site_tab_site_privacy_section_data_options', $section_options );
 }
 
+// spam_guard - SECTION - DATA ////
+function my_private_site_admin_spam_guard_section_data( $section_options ) {
+	$handler_function = 'my_private_site_admin_site_privacy_preload'; // setup the preload handler function
+
+	$section_options = apply_filters( 'my_private_site_tab_spam_guard_section_data', $section_options );
+
+	$settings = get_option( 'jr_ps_settings' );
+	if ( ! is_array( $settings ) ) {
+		$settings = array();
+	}
+
+	$registration_spam_checks = array();
+	if ( isset( $settings['registration_spam_guard_checks'] ) && is_array( $settings['registration_spam_guard_checks'] ) ) {
+		$registration_spam_checks = array_filter( $settings['registration_spam_guard_checks'] );
+	}
+	$registration_spam_count        = count( $registration_spam_checks );
+	$registration_spam_active       = $registration_spam_count > 0;
+	$registration_spam_count_suffix = sprintf(
+		/* translators: %s: Number of deployed defenses. */
+		_n( '%s DEFENSE DEPLOYED', '%s DEFENSES DEPLOYED', $registration_spam_count, 'my-private-site' ),
+		number_format_i18n( $registration_spam_count )
+	);
+	$registration_spam_status = my_private_site_build_status_banner(
+		$registration_spam_active,
+		sprintf(
+			/* translators: %s: Number of deployed defenses. */
+			__( 'REGISTRATION SPAM GUARD ACTIVE - %s', 'my-private-site' ),
+			$registration_spam_count_suffix
+		),
+		sprintf(
+			/* translators: %s: Number of deployed defenses. */
+			__( 'REGISTRATION SPAM GUARD DISABLED - %s', 'my-private-site' ),
+			$registration_spam_count_suffix
+		)
+	);
+	$spam_cleanup_sentence = sprintf(
+		/* translators: %s: Advanced tab link. */
+		esc_html__( 'Need to review or remove spam accounts that already exist? Use Spam Account Cleanup in %s.', 'my-private-site' ),
+		'<a href="' . esc_url( admin_url( 'admin.php?page=my_private_site_tab_advanced&subtab=spam_account_cleanup' ) ) . '">' . esc_html__( 'Advanced', 'my-private-site' ) . '</a>'
+	);
+	$spam_cleanup_note     = '<div class="jrps-protection-cleanup-note">' . $spam_cleanup_sentence . '</div>';
+	$registration_spam_desc  = '<i>Stop automated registration spam before it hits your user list.</i>';
+	$registration_spam_desc .= $registration_spam_status;
+	$registration_spam_desc .= $spam_cleanup_note;
+
+	$section_options->add_field(
+		array(
+			'name'            => 'REGISTRATION SPAM GUARD',
+			'id'              => 'jr_ps_admin_rest_api_registration_spam_guard_promo',
+			'type'            => 'title',
+			'after_field'     => $registration_spam_desc,
+			'secondary_cb'    => 'my_private_site_tab_site_privacy_page',
+			'secondary_tab'   => 'spam-guard',
+			'secondary_title' => 'Spam Guard',
+		)
+	);
+
+	$section_options->add_field(
+		array(
+			'name'              => 'Registration Spam Guard',
+			'id'                => 'jr_ps_admin_registration_spam_guard_checks',
+			'type'              => 'multicheck',
+			'select_all_button' => false,
+			'options'           => my_private_site_spam_guard_signal_choices( 'registration' ),
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_registration_spam_guard_checks', $handler_function );
+
+	my_private_site_display_cmb2_submit_button(
+		$section_options,
+		array(
+			'button_id'          => 'jr_ps_button_registration_spam_guard_save',
+			'button_text'        => 'Save Spam Guard Options',
+			'button_success_msg' => 'Spam guard options saved.',
+			'button_error_msg'   => '',
+		)
+	);
+
+	$recaptcha_login_enabled        = ! empty( $settings['recaptcha_login_guard_enabled'] );
+	$recaptcha_registration_enabled = ! empty( $settings['recaptcha_registration_guard_enabled'] );
+	$recaptcha_site_key             = isset( $settings['recaptcha_login_guard_site_key'] ) ? trim( $settings['recaptcha_login_guard_site_key'] ) : '';
+	$recaptcha_secret_key           = isset( $settings['recaptcha_login_guard_secret_key'] ) ? trim( $settings['recaptcha_login_guard_secret_key'] ) : '';
+	$recaptcha_has_keys             = ( $recaptcha_site_key !== '' && $recaptcha_secret_key !== '' );
+	$recaptcha_deployed_count       = $recaptcha_has_keys ? ( ( $recaptcha_login_enabled ? 1 : 0 ) + ( $recaptcha_registration_enabled ? 1 : 0 ) ) : 0;
+	$recaptcha_guard_active         = $recaptcha_deployed_count > 0;
+	$recaptcha_count_suffix         = sprintf(
+		/* translators: %s: Number of deployed defenses. */
+		_n( '%s DEFENSE DEPLOYED', '%s DEFENSES DEPLOYED', $recaptcha_deployed_count, 'my-private-site' ),
+		number_format_i18n( $recaptcha_deployed_count )
+	);
+	$recaptcha_login_status         = my_private_site_build_status_banner(
+		$recaptcha_guard_active,
+		sprintf(
+			/* translators: %s: Number of deployed defenses. */
+			__( 'RECAPTCHA GUARD ACTIVE - %s', 'my-private-site' ),
+			$recaptcha_count_suffix
+		),
+		sprintf(
+			/* translators: %s: Number of deployed defenses. */
+			__( 'RECAPTCHA GUARD DISABLED - %s', 'my-private-site' ),
+			$recaptcha_count_suffix
+		)
+	);
+	$recaptcha_login_desc           = '<i>' . esc_html__( 'Protect login and registration forms with reCAPTCHA challenges.', 'my-private-site' ) . '</i>';
+	$recaptcha_login_desc          .= $recaptcha_login_status;
+	$recaptcha_login_desc          .= '<div class="jrps-recaptcha-note">Learn about reCAPTCHA at '
+		. '<a href="https://www.google.com/recaptcha/about/" target="_blank" rel="noopener noreferrer">Google reCAPTCHA</a> '
+		. 'and set up keys at <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">reCAPTCHA Admin</a>. '
+		. 'For reCAPTCHA type choose "Challenge (v2)" and "I\'m not a robot" checkbox. '
+		. $spam_cleanup_sentence
+		. '</div>';
+
+	$section_options->add_field(
+		array(
+			'name'            => __( 'reCAPTCHA Guard - Login and Registration', 'my-private-site' ),
+			'id'              => 'jr_ps_admin_rest_api_recaptcha_login_guard_promo',
+			'type'            => 'title',
+			'after_field'     => $recaptcha_login_desc,
+			'secondary_cb'    => 'my_private_site_tab_site_privacy_page',
+			'secondary_tab'   => 'spam-guard',
+			'secondary_title' => 'Spam Guard',
+		)
+	);
+
+	$section_options->add_field(
+		array(
+			'name'  => __( 'Login Guard', 'my-private-site' ),
+			'id'    => 'jr_ps_admin_recaptcha_login_guard_enable',
+			'type'  => 'checkbox',
+			'after' => __( 'Enable reCAPTCHA on login form', 'my-private-site' ),
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_login_guard_enable', $handler_function );
+
+	$section_options->add_field(
+		array(
+			'name'  => __( 'Registration Guard', 'my-private-site' ),
+			'id'    => 'jr_ps_admin_recaptcha_registration_guard_enable',
+			'type'  => 'checkbox',
+			'after' => __( 'Enable reCAPTCHA on registration form', 'my-private-site' ),
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_registration_guard_enable', $handler_function );
+
+	$section_options->add_field(
+		array(
+			'name' => 'Site Key',
+			'id'   => 'jr_ps_admin_recaptcha_site_key',
+			'type' => 'text',
+			'desc' => 'Google reCAPTCHA site key.',
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_site_key', $handler_function );
+
+	$section_options->add_field(
+		array(
+			'name' => 'Secret Key',
+			'id'   => 'jr_ps_admin_recaptcha_secret_key',
+			'type' => 'text',
+			'desc' => 'Google reCAPTCHA secret key.',
+			'attributes' => array(
+				'type'         => 'password',
+				'autocomplete' => 'new-password',
+			),
+		)
+	);
+	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_secret_key', $handler_function );
+
+	my_private_site_display_cmb2_submit_button(
+		$section_options,
+		array(
+			'button_id'          => 'jr_ps_button_recaptcha_login_save',
+			'button_text'        => 'Save reCAPTCHA Settings',
+			'button_success_msg' => 'reCAPTCHA settings saved.',
+			'button_error_msg'   => '',
+		)
+	);
+
+	$section_options = apply_filters( 'my_private_site_tab_spam_guard_section_data_options', $section_options );
+}
+
 // rest_api - SECTION - DATA ////
 function my_private_site_admin_rest_api_section_data( $section_options ) {
 	$handler_function = 'my_private_site_admin_site_privacy_preload'; // setup the preload handler function
@@ -321,131 +503,6 @@ function my_private_site_admin_rest_api_section_data( $section_options ) {
 			'button_id'          => 'jr_ps_button_rest_api_save',
 			'button_text'        => 'Save REST API Option',
 			'button_success_msg' => 'REST API Option saved.',
-			'button_error_msg'   => '',
-		)
-	);
-
-	$registration_spam_checks = array();
-	if ( isset( $settings['registration_spam_guard_checks'] ) && is_array( $settings['registration_spam_guard_checks'] ) ) {
-		$registration_spam_checks = array_filter( $settings['registration_spam_guard_checks'] );
-	}
-	$registration_spam_active = ! empty( $registration_spam_checks );
-	$registration_spam_status = my_private_site_build_status_banner(
-		$registration_spam_active,
-		'REGISTRATION SPAM GUARD ACTIVE',
-		'REGISTRATION SPAM GUARD DISABLED'
-	);
-	$registration_spam_desc  = '<i>Stop automated registration spam before it hits your user list.</i>';
-	$registration_spam_desc .= $registration_spam_status;
-
-	$section_options->add_field(
-		array(
-			'name'           => 'REGISTRATION SPAM GUARD',
-			'id'             => 'jr_ps_admin_rest_api_registration_spam_guard_promo',
-			'type'           => 'title',
-			'after_field'    => $registration_spam_desc,
-			'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
-			'secondary_tab'  => 'protection',
-			'secondary_title'=> 'Protection',
-		)
-	);
-
-	$section_options->add_field(
-		array(
-			'name'              => 'Registration Spam Guard',
-			'id'                => 'jr_ps_admin_registration_spam_guard_checks',
-			'type'              => 'multicheck',
-			'select_all_button' => false,
-			'options'           => array(
-				'honeypot'                => 'Enable honeypot field on registration form',
-				'gibberish_username'      => 'Block registrations with excessively long gibberish usernames',
-				'url_like_username'       => 'Block registrations with URL-like usernames',
-				'spam_phrase_username'    => 'Block registrations with crypto scam phrase usernames',
-				'excessive_dots'          => 'Block registrations with excessive dots in email address',
-				'missing_mx'              => 'Block registrations when email domain lacks MX records',
-				'disposable_email_domain' => 'Block registrations from disposable email domains',
-				'stop_forum_spam'         => 'Check registrants against StopForumSpam database',
-			),
-		)
-	);
-	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_registration_spam_guard_checks', $handler_function );
-
-	my_private_site_display_cmb2_submit_button(
-		$section_options,
-		array(
-			'button_id'          => 'jr_ps_button_registration_spam_guard_save',
-			'button_text'        => 'Save Spam Guard Options',
-			'button_success_msg' => 'Spam guard options saved.',
-			'button_error_msg'   => '',
-		)
-	);
-
-	$recaptcha_login_enabled = ! empty( $settings['recaptcha_login_guard_enabled'] );
-	$recaptcha_site_key      = isset( $settings['recaptcha_login_guard_site_key'] ) ? trim( $settings['recaptcha_login_guard_site_key'] ) : '';
-	$recaptcha_secret_key    = isset( $settings['recaptcha_login_guard_secret_key'] ) ? trim( $settings['recaptcha_login_guard_secret_key'] ) : '';
-	$recaptcha_has_keys      = ( $recaptcha_site_key !== '' && $recaptcha_secret_key !== '' );
-	$recaptcha_login_active  = ( $recaptcha_login_enabled && $recaptcha_has_keys );
-	$recaptcha_login_status = my_private_site_build_status_banner(
-		$recaptcha_login_active,
-		'RECAPTCHA LOGIN GUARD ACTIVE',
-		'RECAPTCHA LOGIN GUARD DISABLED'
-	);
-	$recaptcha_login_desc  = '<i>Protect login forms with reCAPTCHA challenges.</i>';
-	$recaptcha_login_desc .= $recaptcha_login_status;
-	$recaptcha_login_desc .= '<div class="jrps-recaptcha-note">Learn about reCAPTCHA at '
-		. '<a href="https://www.google.com/recaptcha/about/" target="_blank" rel="noopener noreferrer">Google reCAPTCHA</a> '
-		. 'and set up keys at <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">reCAPTCHA Admin</a>. '
-		. 'For reCAPTCHA type choose "Challenge (v2)" and "I\'m not a robot" checkbox.'
-		. '</div>';
-
-	$section_options->add_field(
-		array(
-			'name'           => 'reCAPTCHA LOGIN GUARD',
-			'id'             => 'jr_ps_admin_rest_api_recaptcha_login_guard_promo',
-			'type'           => 'title',
-			'after_field'    => $recaptcha_login_desc,
-			'secondary_cb'   => 'my_private_site_tab_site_privacy_page',
-			'secondary_tab'  => 'protection',
-			'secondary_title'=> 'Protection',
-		)
-	);
-
-	$section_options->add_field(
-		array(
-			'name'  => 'reCAPTCHA Login Guard',
-			'id'    => 'jr_ps_admin_recaptcha_login_guard_enable',
-			'type'  => 'checkbox',
-			'after' => 'Enable reCAPTCHA Login Guard',
-		)
-	);
-	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_login_guard_enable', $handler_function );
-
-	$section_options->add_field(
-		array(
-			'name' => 'Site Key',
-			'id'   => 'jr_ps_admin_recaptcha_site_key',
-			'type' => 'text',
-			'desc' => 'Google reCAPTCHA site key.',
-		)
-	);
-	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_site_key', $handler_function );
-
-	$section_options->add_field(
-		array(
-			'name' => 'Secret Key',
-			'id'   => 'jr_ps_admin_recaptcha_secret_key',
-			'type' => 'text',
-			'desc' => 'Google reCAPTCHA secret key.',
-		)
-	);
-	my_private_site_preload_cmb2_field_filter( 'jr_ps_admin_recaptcha_secret_key', $handler_function );
-
-	my_private_site_display_cmb2_submit_button(
-		$section_options,
-		array(
-			'button_id'          => 'jr_ps_button_recaptcha_login_save',
-			'button_text'        => 'Save reCAPTCHA Settings',
-			'button_success_msg' => 'reCAPTCHA settings saved.',
 			'button_error_msg'   => '',
 		)
 	);
@@ -819,16 +876,7 @@ function my_private_site_tab_site_privacy_process_buttons() {
 			wp_die( 'Security violation detected [A013]. Access denied.', 'Security violation', array( 'response' => 403 ) );
 		}
 
-		$allowed_checks = array(
-			'honeypot'                => true,
-			'gibberish_username'      => true,
-			'url_like_username'       => true,
-			'spam_phrase_username'    => true,
-			'excessive_dots'          => true,
-			'missing_mx'              => true,
-			'disposable_email_domain' => true,
-			'stop_forum_spam'         => true,
-		);
+			$allowed_checks = my_private_site_spam_guard_allowed_signal_keys( 'registration' );
 		$spam_guard_checks = array();
 		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( isset( $_POST['jr_ps_admin_registration_spam_guard_checks'] ) && is_array( $_POST['jr_ps_admin_registration_spam_guard_checks'] ) ) {
@@ -852,7 +900,9 @@ function my_private_site_tab_site_privacy_process_buttons() {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification
-		$recaptcha_enabled = isset( $_POST['jr_ps_admin_recaptcha_login_guard_enable'] );
+		$recaptcha_login_enabled = isset( $_POST['jr_ps_admin_recaptcha_login_guard_enable'] );
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$recaptcha_registration_enabled = isset( $_POST['jr_ps_admin_recaptcha_registration_guard_enable'] );
 		// phpcs:ignore WordPress.Security.NonceVerification
 		$recaptcha_site_key = isset( $_POST['jr_ps_admin_recaptcha_site_key'] )
 			? trim( sanitize_text_field( wp_unslash( $_POST['jr_ps_admin_recaptcha_site_key'] ) ) )
@@ -862,33 +912,39 @@ function my_private_site_tab_site_privacy_process_buttons() {
 			? trim( sanitize_text_field( wp_unslash( $_POST['jr_ps_admin_recaptcha_secret_key'] ) ) )
 			: '';
 
-		if ( $recaptcha_enabled && ( $recaptcha_site_key === '' || $recaptcha_secret_key === '' ) ) {
+		if ( ( $recaptcha_login_enabled || $recaptcha_registration_enabled ) && ( $recaptcha_site_key === '' || $recaptcha_secret_key === '' ) ) {
 			$missing = array();
 			if ( $recaptcha_site_key === '' ) {
-				$missing[] = 'Site Key';
+				$missing[] = __( 'Site Key', 'my-private-site' );
 			}
 			if ( $recaptcha_secret_key === '' ) {
-				$missing[] = 'Secret Key';
+				$missing[] = __( 'Secret Key', 'my-private-site' );
 			}
 			$missing_label = implode( ' and ', $missing );
+			$missing_msg   = sprintf(
+				/* translators: %s: Missing reCAPTCHA key labels. */
+				__( 'Please provide the %s to enable reCAPTCHA Guard.', 'my-private-site' ),
+				$missing_label
+			);
 			my_private_site_flag_cmb2_submit_button_error(
 				'jr_ps_button_recaptcha_login_save',
-				'Please provide the ' . $missing_label . ' to enable reCAPTCHA Login Guard.'
+				$missing_msg
 			);
 			$internal_settings = get_option( 'jr_ps_internal_settings' );
 			if ( ! is_array( $internal_settings ) ) {
 				$internal_settings = array();
 			}
-			$internal_settings['recaptcha_login_notice']      = 'Please provide the ' . $missing_label . ' to enable reCAPTCHA Login Guard.';
+			$internal_settings['recaptcha_login_notice']      = $missing_msg;
 			$internal_settings['recaptcha_login_notice_type'] = 'error';
 			update_option( 'jr_ps_internal_settings', $internal_settings );
 
 			return;
 		}
 
-		$settings['recaptcha_login_guard_enabled']    = $recaptcha_enabled;
-		$settings['recaptcha_login_guard_site_key']   = $recaptcha_site_key;
-		$settings['recaptcha_login_guard_secret_key'] = $recaptcha_secret_key;
+		$settings['recaptcha_login_guard_enabled']        = $recaptcha_login_enabled;
+		$settings['recaptcha_registration_guard_enabled'] = $recaptcha_registration_enabled;
+		$settings['recaptcha_login_guard_site_key']       = $recaptcha_site_key;
+		$settings['recaptcha_login_guard_secret_key']     = $recaptcha_secret_key;
 
 		$result = update_option( 'jr_ps_settings', $settings );
 		my_private_site_flag_cmb2_submit_button_success( 'jr_ps_button_recaptcha_login_save' );
@@ -936,6 +992,12 @@ function my_private_site_admin_site_privacy_preload( $data, $object_id, $args, $
 		case 'jr_ps_admin_recaptcha_login_guard_enable':
 			if ( isset( $settings['recaptcha_login_guard_enabled'] ) ) {
 				return (bool) $settings['recaptcha_login_guard_enabled'];
+			}
+			return false;
+			break;
+		case 'jr_ps_admin_recaptcha_registration_guard_enable':
+			if ( isset( $settings['recaptcha_registration_guard_enabled'] ) ) {
+				return (bool) $settings['recaptcha_registration_guard_enabled'];
 			}
 			return false;
 			break;

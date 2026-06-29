@@ -36,7 +36,7 @@ function my_private_site_cmb_options_display_with_tabs( $cmb_options ) {
     // Enforce specific subtab ordering on the Site Privacy page
     if ( $cmb_id === 'my_private_site_tab_site_privacy_page' && ! empty( $secondary_tabs ) ) {
         // Desired order: core subtabs first, then add-on subtabs
-        $desired = array( 'privacy', 'protection', 'ai-intelligence', 'user_activity' );
+        $desired = array( 'privacy', 'spam-guard', 'protection', 'ai-intelligence', 'user_activity' );
 
         $ordered = array();
         foreach ( $desired as $slug ) {

@@ -76,6 +76,7 @@ function my_private_site_admin_loader() {
 	require_once __DIR__ . '/admin/membership.php';
 	require_once __DIR__ . '/admin/addons.php';
 	require_once __DIR__ . '/admin/licenses.php';
+	require_once __DIR__ . '/admin/spam-account-cleanup.php';
 	require_once __DIR__ . '/admin/advanced.php';
 }
 
